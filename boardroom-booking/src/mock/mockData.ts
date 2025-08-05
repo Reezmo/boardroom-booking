@@ -42,6 +42,8 @@ export const DUMMY_EVENTS: IEvent[] = [
     endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 7, 0),
     boardroom: BOARDROOMS[0],
     organizer: DUMMY_ORGANIZER,
+    attendees: 5,
+    agenda: "Discuss project updates",
   },
   {
     id: "2",

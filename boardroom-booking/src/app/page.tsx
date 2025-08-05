@@ -2,13 +2,17 @@
 
 import Reminder from "@/components/panel/reminder"
 import RoomSelector from "@/components/panel/room-selector"
+import Notifications from "@/components/sheet/notifications"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { BOARDROOMS, DUMMY_EVENTS } from "@/mock/mockData"
+import { BookingForm } from "@/app/form/new-booking"
 import {
   addMonths,
   // eachDayOfInterval, // Removed due to missing export
@@ -20,8 +24,9 @@ import {
   startOfMonth,
   subMonths,
 } from "date-fns"
-import { Bell, CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react"
+import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { useMemo, useState } from "react"
+import ProfileMenu from "@/components/profile/profile-menu"
 
 // Get today's date at midnight
 const today = new Date();
@@ -29,11 +34,14 @@ today.setHours(0, 0, 0, 0);
 
 // Set initial selectedDate/currentMonth to today and this month
 const HOUR_HEIGHT = 60 // pixels per hour
+const SLOT_HEIGHT = 30 // pixels per 30-min slot
 
 export default function EventCalendar() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
   const [selectedBoardroom, setSelectedBoardroom] = useState(BOARDROOMS[0]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogSlotTime, setDialogSlotTime] = useState<Date | null>(null);
 
   const daysOfWeek = [
     { label: "M", key: "mon" },
@@ -73,7 +81,12 @@ export default function EventCalendar() {
 
   const days = useMemo(() => getDaysInMonth(currentMonth), [currentMonth])
 
-  const hours = Array.from({ length: 24 }, (_, i) => i) // 0 to 23 for full day
+  // 48 slots for 24 hours, each 30 min
+  const timeSlots = Array.from({ length: 48 }, (_, i) => {
+    const hour = Math.floor(i / 2)
+    const minute = (i % 2) * 30
+    return { hour, minute }
+  })
 
   const filteredEvents = useMemo(() => {
     return DUMMY_EVENTS.filter(
@@ -98,7 +111,7 @@ export default function EventCalendar() {
   }
 
   return (
-    <div className="flex flex-col h-screen p-4 bg-gradient-to-br from-emerald-50 via-white to-teal-100">
+    <div className="flex flex-col p-4 h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-100">
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel: Mini Calendar */}
@@ -116,7 +129,7 @@ export default function EventCalendar() {
                   variant="ghost"
                   size="icon"
                   onClick={handlePrevMonth}
-                  className="rounded-full hover:bg-emerald-100 transition"
+                  className="rounded-full hover:bg-emerald-100 transition "
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -195,8 +208,8 @@ export default function EventCalendar() {
         </div>
         <div className="w-6 flex-shrink-0" /> 
         {/* Right Panel: Header and Time Grid */}
-        <div className="flex-1 relative overflow-y-auto  ">
-          <Card className="p-2 rounded-3xl">
+        <div className="flex-1 relative">
+          <Card className="p-2 rounded-3xl shadow-gray">
             <CardContent className="p-0 h-full">
               {/* Header */}
               <div className="flex flex-col mb-4 p-4">
@@ -236,14 +249,14 @@ export default function EventCalendar() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="rounded-full"
+                      className=" rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer"
                       onClick={() => setSelectedDate(subMonths(selectedDate, 1))}
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="outline"
-                      className="rounded-full px-4"
+                      className=" rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer rounded-full px-4"
                       onClick={handleTodayClick}
                     >
                       Today
@@ -251,23 +264,17 @@ export default function EventCalendar() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="rounded-full"
+                      className="rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer"
                       onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
                     >
                       <ChevronRight className="h-4 w-4 " />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="rounded-full"
-                      aria-label="Notifications"
-                    >
-                      <Bell className="h-5 w-5" />
-                    </Button>
+                   <Notifications />
+                   <ProfileMenu />
                   </div>
                 </div>
                 {/* Week Card UI */}
-                <div className="flex gap-2 mb-2 w-full mt-4">
+                <div className="flex gap-2 w-full ">
                   {(() => {
                     // Calculate the start of the week (Monday)
                     const weekStart = new Date(selectedDate)
@@ -300,167 +307,204 @@ export default function EventCalendar() {
                   })()}
                 </div>
               </div>
-
-              
               {/* Time Grid and Events */}
-              <div className="grid grid-cols-[60px_1fr] h-full">
-                {/* Time Labels */}
-                <div className="sticky left-0 z-10 pr-2 text-right text-xs text-muted-foreground pt-[30px] select-none">
-                  {hours.map((hour) => (
-                    <div
-                      key={hour}
-                      style={{ height: HOUR_HEIGHT, lineHeight: `${HOUR_HEIGHT}px` }}
-                      className={`flex items-start justify-end ${hour % 6 === 0 ? "font-bold text-gray-700" : ""}`}
-                    >
-                      <span>
-                        {format(new Date(2000, 0, 1, hour, 0), "h a")}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                {/* Time Lines and Events */}
-                <div className="relative">
-                  {hours.map((hour) => (
-                    <div
-                      key={`line-bg-${hour}`}
-                      className="absolute left-0 right-0 w-full"
-                      style={{
-                        top: hour * HOUR_HEIGHT,
-                        height: HOUR_HEIGHT,
-                        backgroundColor: hour % 2 === 0 ? "#ffffff" : "#f8fafc",
-                        zIndex: 0,
-                      }}
-                      aria-hidden="true"
-                    />
-                  ))}
-                  {hours.map((hour) => (
-                    <div
-                      key={`line-${hour}`}
-                      className={`absolute left-0 right-0 border-t ${hour % 6 === 0 ? "border-emerald-400" : "border-gray-200"}`}
-                      style={{
-                        top: hour * HOUR_HEIGHT,
-                        height: 0,
-                        zIndex: 1,
-                        opacity: 0.5,
-                      }}
-                    />
-                  ))}
-                  {/* 30-min interval lines, faintest */}
-                  {hours.map((hour) => (
-                    <div
-                      key={`half-line-${hour}`}
-                      className="absolute left-0 right-0 border-t border-gray-200"
-                      style={{
-                        top: hour * HOUR_HEIGHT + HOUR_HEIGHT / 2,
-                        height: 0,
-                        zIndex: 1,
-                        opacity: 0.18,
-                      }}
-                      aria-hidden="true"
-                    />
-                  ))}
-                  {/* Highlight current hour */}
-                  {/* {isToday(selectedDate) && (
-                    <div
-                      className="absolute left-0 right-0 border-t-2 border-red-400"
-                      style={{
-                        top: (() => {
-                          const now = new Date();
-                          if (!isSameDay(now, selectedDate)) return -1000;
-                          return (now.getHours() + now.getMinutes() / 60) * HOUR_HEIGHT;
-                        })(),
-                        zIndex: 10,
-                      }}
-                    />
-                  )} */}
-
-                  {/* Events */}
-                  {filteredEvents.map((event) => {
-                    const startMinutes = event.startTime.getHours() * 60 + event.startTime.getMinutes()
-                    const endMinutes = event.endTime.getHours() * 60 + event.endTime.getMinutes()
-                    const durationMinutes = endMinutes - startMinutes
-
-                    // Calculate top position relative to the start of the 00:00 hour
-                    const topPosition = (startMinutes / 60) * HOUR_HEIGHT
-                    const height = (durationMinutes / 60) * HOUR_HEIGHT
-
-                    return (
+              <ScrollArea className="h-[calc(100vh-215px)] rounded-3xl">
+                <div className="grid grid-cols-[60px_1fr] h-full">
+                  {/* Time Labels */}
+                  <div className="sticky left-0 z-10 pr-2 text-right text-xs text-muted-foreground pt-[30px] select-none">
+                    {timeSlots.map((slot, idx) => (
                       <div
-                        key={event.id}
-                        className={`absolute left-2 right-2 rounded-md p-2 text-xs overflow-hidden cursor-pointer transition hover:brightness-95 active:scale-[0.98] ${event.color}`}
-                        style={{
-                          top: topPosition,
-                          height: height,
-                          minHeight: "20px",
-                        }}
-                        onClick={() => alert(`Event: ${event.title}`)}
+                        key={idx}
+                        style={{ height: SLOT_HEIGHT, lineHeight: `${SLOT_HEIGHT}px` }}
+                        className={`flex items-start justify-end ${
+                          slot.minute === 0 && slot.hour % 6 === 0 ? "font-bold text-gray-700" : ""
+                        }`}
                       >
-                        <p className="font-semibold">{format(event.startTime, "h:mm a")}</p>
-                        <p className="font-medium">{event.title}</p>
-                        {event.description && <p className="text-muted-foreground">{event.description}</p>}
+                        {/* Only show label on the hour */}
+                        {slot.minute === 0 ? (
+                          <span>
+                            {format(new Date(2000, 0, 1, slot.hour, 0), "h a")}
+                          </span>
+                        ) : (
+                          <span className="opacity-0 select-none">--</span>
+                        )}
                       </div>
-                    )
-                  })}
-                  {/* Overlay clickable empty slots */}
-                  <TooltipProvider>
-                  {hours.map((hour) => {
-                    const hasEvent = filteredEvents.some(
-                      (e) =>
-                        e.startTime.getHours() === hour &&
-                        e.startTime.getMinutes() === 0
-                    );
-                    if (hasEvent) return null;
-                    return (
+                    ))}
+                  </div>
+                  {/* Time Lines and Events */}
+                  <div className="relative">
+                    {/* Background stripes */}
+                    {timeSlots.map((slot, idx) => (
                       <div
-                        key={`empty-slot-overlay-${hour}`}
-                        className="absolute left-2 right-2"
+                        key={`line-bg-${idx}`}
+                        className="absolute left-0 right-0 w-full"
                         style={{
-                          top: hour * HOUR_HEIGHT,
-                          height: HOUR_HEIGHT - 4,
-                          zIndex: 3,
+                          top: idx * SLOT_HEIGHT,
+                          height: SLOT_HEIGHT,
+                          backgroundColor: idx % 2 === 0 ? "#ffffffff" : "#f6ffffff",
+                          zIndex: 0,
                         }}
-                      >
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              className="group w-full h-full flex items-center justify-center rounded-lg focus:outline-none"
-                              style={{
-                                background: "transparent",
-                                height: "100%",
-                              }}
-                              tabIndex={0}
-                              aria-label={`Add event at ${hour}:00`}
-                              onClick={() => alert(`Create event at ${format(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), hour, 0), "h:mm a")}`)}
-                            >
-                              <span
-                                className="hidden group-hover:flex items-center justify-center w-full h-full border-2 border-dotted border-emerald-200 rounded-lg bg-white/70 transition"
+                        aria-hidden="true"
+                      />
+                    ))}
+                    {/* Main hour lines */}
+                    {timeSlots.map((slot, idx) =>
+                      slot.minute === 0 ? (
+                        <div
+                          key={`line-${idx}`}
+                          className="absolute left-0 right-0 border-t border-gray-200"
+                          style={{
+                            top: idx * SLOT_HEIGHT,
+                            height: 0,
+                            zIndex: 1,
+                            opacity: 0.5,
+                          }}
+                        />
+                      ) : null
+                    )}
+                    {/* 30-min interval lines, faintest */}
+                    {timeSlots.map((slot, idx) =>
+                      slot.minute === 30 ? (
+                        <div
+                          key={`half-line-${idx}`}
+                          className="absolute left-0 right-0 border-t border-gray-200"
+                          style={{
+                            top: idx * SLOT_HEIGHT,
+                            height: 0,
+                            zIndex: 1,
+                            opacity: 0.18,
+                          }}
+                          aria-hidden="true"
+                        />
+                      ) : null
+                    )}
+                    {/* Events */}
+                    {filteredEvents.map((event) => {
+                      const startMinutes = event.startTime.getHours() * 60 + event.startTime.getMinutes()
+                      const endMinutes = event.endTime.getHours() * 60 + event.endTime.getMinutes()
+                      const durationMinutes = endMinutes - startMinutes
+
+                      // Calculate top position and height in 30-min slots
+                      const topPosition = (startMinutes / 30) * SLOT_HEIGHT
+                      const height = (durationMinutes / 30) * SLOT_HEIGHT
+
+                      return (
+                        <div
+                          key={event.id}
+                          className={`absolute left-2 right-2 rounded-md p-2 text-xs overflow-hidden cursor-pointer transition hover:brightness-95 active:scale-[0.98] ${event.color}`}
+                          style={{
+                            top: topPosition,
+                            height: height,
+                            minHeight: "20px",
+                          }}
+                          onClick={() => alert(`Event: ${event.title}`)}
+                        >
+                          <p className="font-semibold">{format(event.startTime, "h:mm a")}</p>
+                          <p className="font-medium">{event.title}</p>
+                          <p className="text-muted-foreground">{event.description}</p>
+                        </div>
+                      )
+                    })}
+                    {/* Overlay clickable empty slots */}
+                    <TooltipProvider>
+                    {timeSlots.map((slot, idx) => {
+                      // Mark slot as unavailable if it overlaps with any event
+                      const slotStart = slot.hour * 60 + slot.minute;
+                      const slotEnd = slotStart + 30;
+                      const hasEvent = filteredEvents.some(
+                        (e) => {
+                          const eventStart = e.startTime.getHours() * 60 + e.startTime.getMinutes();
+                          const eventEnd = e.endTime.getHours() * 60 + e.endTime.getMinutes();
+                          // Slot overlaps with event if slotStart < eventEnd and slotEnd > eventStart
+                          return slotStart < eventEnd && slotEnd > eventStart;
+                        }
+                      );
+                      if (hasEvent) return null;
+                      const slotDate = new Date(
+                        selectedDate.getFullYear(),
+                        selectedDate.getMonth(),
+                        selectedDate.getDate(),
+                        slot.hour,
+                        slot.minute
+                      );
+                      return (
+                        <div
+                          key={`empty-slot-overlay-${idx}`}
+                          className="absolute left-2 right-2"
+                          style={{
+                            top: idx * SLOT_HEIGHT,
+                            height: SLOT_HEIGHT - 4,
+                            zIndex: 3,
+                          }}
+                        >
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                className="group w-full h-full flex items-center justify-center rounded-lg focus:outline-none"
                                 style={{
-                                  position: "absolute",
-                                  left: 0,
-                                  top: 0,
+                                  background: "transparent",
                                   height: "100%",
-                                  width: "100%",
-                                  zIndex: 4,
+                                }}
+                                tabIndex={0}
+                                aria-label={`Add event at ${format(slotDate, "h:mm a")}`}
+                                onClick={() => {
+                                  setDialogSlotTime(slotDate);
+                                  setDialogOpen(true);
                                 }}
                               >
-                                <Plus className="w-5 h-5 text-emerald-400 opacity-70" />
-                              </span>
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <span>Add event at {format(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), hour, 0), "h:mm a")}</span>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                    )
-                  })}
-                  </TooltipProvider>
+                                <span
+                                  className="hidden group-hover:flex items-center justify-center w-full h-full border-2 border-dotted border-emerald-200 rounded-lg bg-white/70 transition"
+                                  style={{
+                                    position: "absolute",
+                                    left: 0,
+                                    top: 0,
+                                    height: "100%",
+                                    width: "100%",
+                                    zIndex: 4,
+                                  }}
+                                >
+                                  <Plus className="w-5 h-5 text-emerald-400 opacity-70" />
+                                </span>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <span>Add event at {format(slotDate, "h:mm a")}</span>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      )
+                    })}
+                    </TooltipProvider>
+                  </div>
                 </div>
-              </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>
       </div>
+      {/* Add Event Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Event</DialogTitle>
+          </DialogHeader>
+          <div>
+            {dialogSlotTime && (
+              <div className="mb-4">
+                <span className="font-medium">Time: </span>
+                {format(dialogSlotTime, "MMMM dd, yyyy h:mm a")}
+              </div>
+            )}
+            {/* Booking form inserted below */}
+            <BookingForm slotTime={dialogSlotTime} boardroom={selectedBoardroom} />
+          </div>
+          <DialogFooter>
+            <Button 
+            variant="outline"
+             onClick={() => setDialogOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

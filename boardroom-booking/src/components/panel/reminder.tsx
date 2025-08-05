@@ -1,16 +1,24 @@
-import React from 'react';
-import { Button } from '../ui/button'
-import { Card, CardContent, CardFooter, CardTitle } from '../ui/card'
+import { AlertCircle, Clock } from "lucide-react";
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardFooter, CardTitle } from '../ui/card';
 
 export default function Reminder() {
   return (
-    <div className='mt-6 flex justify-center h-55'>
-      <Card className="p-6 shadow-lg shadow-gray-200/60 rounded-xl w-full max-w-md bg-gradient-to-br from-emerald to-white-50 border-0">
-        <div className="flex items-center gap-3 mb-2">
+    <div className='mt-6 flex justify-center h-54'>
+      <Card className="p-2 shadow-lg shadow-gray rounded-xl w-full max-w-md bg-gradient-to-br from-emerald to-teal-50 border-0 relative">
+        {/* Time badge at top right with clock icon */}
+        <Badge
+          className="absolute top-2 right-4 bg-emerald-100 text-emerald-600 font-semibold px-3 py-1 rounded-full shadow-sm flex items-center gap-1 border-0"
+          variant="secondary"
+        >
+          <Clock className="w-4 h-4 mr-1 text-emerald-500" />
+          16:00 - 17:00
+        </Badge>
+        <div className="flex items-center gap-3 mt-6">
+          {/* Alert icon */}
           <span className="inline-flex items-center justify-center bg-emerald-50 text-emerald-400 rounded-full w-10 h-10">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <AlertCircle className="w-6 h-6" />
           </span>
           <CardTitle className="text-lg font-semibold text-gray-800">
             Upcoming Meeting
@@ -18,7 +26,7 @@ export default function Reminder() {
         </div>
         <CardContent className="">
           <p className="text-gray-600 text-base">
-            Don&#39;t forget your meeting at <span className="font-semibold text-emerald-400">3:00 PM</span>
+            Don&#39;t forget your meeting <span className="font-semibold text-emerald-400">Budget Plan</span>
           </p>
         </CardContent>
         <CardFooter className='flex justify-start gap-3'>
