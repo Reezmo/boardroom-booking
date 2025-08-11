@@ -3,8 +3,6 @@ export interface IBoardroom {
   name: string;
   availability: boolean;
   capacity: number;
-  isConfirmed: boolean; // Optional field to indicate if the booking is confirmed
-
   
 
    

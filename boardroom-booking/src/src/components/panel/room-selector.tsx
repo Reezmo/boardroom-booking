@@ -2,7 +2,7 @@ import { useState } from 'react'
 // Import ShadCN UI components
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { Calendar, DoorClosed, DoorOpen } from 'lucide-react'
+import { Calendar, DoorClosed, DoorOpen } from "lucide-react"
 // Add ShadCN Tooltip
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { BOARDROOMS, MEETINGS_COUNT } from "@/mock/mockData"
@@ -11,10 +11,9 @@ import { IBoardroom } from "@/models/IBoardroom"
 export interface RoomSelectorProps {
   selectedBoardroom: IBoardroom | null
   onSelectBoardroom: (room: IBoardroom) => void
-  boardrooms?: IBoardroom[]
 }
 
-export default function RoomSelector({ selectedBoardroom, onSelectBoardroom, boardrooms = BOARDROOMS }: RoomSelectorProps) {
+export default function RoomSelector({ selectedBoardroom, onSelectBoardroom }: RoomSelectorProps) {
   const [open, setOpen] = useState(false)
 
   const getStatus = (room: IBoardroom) => room.availability ? "Available" : "Occupied"
@@ -71,7 +70,7 @@ export default function RoomSelector({ selectedBoardroom, onSelectBoardroom, boa
       </div>
       {open && (
         <div className="absolute z-10 mt-2 w-full bg-white border rounded-lg shadow shadow-sky-200/60 ">
-          {boardrooms
+          {BOARDROOMS
             .filter(room => room.id !== selectedBoardroom?.id)
             .map(room => (
               <div
@@ -124,3 +123,4 @@ export default function RoomSelector({ selectedBoardroom, onSelectBoardroom, boa
     </div>
   )
 }
+      

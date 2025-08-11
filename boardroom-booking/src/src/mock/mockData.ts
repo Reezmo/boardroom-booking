@@ -10,15 +10,14 @@ export const BOARDROOMS: IBoardroom[] = [
     name: "Emerald Room",
     availability: true,
     capacity: 10,
-    isConfirmed: true, 
+
   },
   {
     id: "br-2",
     name: "Boardroom B",
     availability: false,
     capacity: 8,
-    isConfirmed: true, 
-  }
+  },
 ]
 
 // Organizer
@@ -66,7 +65,6 @@ export const DUMMY_EVENTS: IEvent[] = [
     organizer: DUMMY_ORGANIZER,
     attendees: 5,
     agenda: "Discuss project updates",
-    IsConfirmed: true,
   },
   {
     id: "2",
@@ -77,7 +75,6 @@ export const DUMMY_EVENTS: IEvent[] = [
     endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 0),
     boardroom: BOARDROOMS[1],
     organizer: DUMMY_ORGANIZER,
-    IsConfirmed: true,
   },
   {
     id: "3",
@@ -88,7 +85,6 @@ export const DUMMY_EVENTS: IEvent[] = [
     endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0),
     boardroom: BOARDROOMS[0],
     organizer: DUMMY_ORGANIZER,
-    IsConfirmed: true,
   },
   {
     id: "4",
@@ -99,7 +95,6 @@ export const DUMMY_EVENTS: IEvent[] = [
     endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 30),
     boardroom: BOARDROOMS[0],
     organizer: DUMMY_ORGANIZER,
-    IsConfirmed: true,
   },
   {
     id: "5",
@@ -110,7 +105,6 @@ export const DUMMY_EVENTS: IEvent[] = [
     endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 0),
     boardroom: BOARDROOMS[0],
     organizer: DUMMY_ORGANIZER,
-    IsConfirmed: true,
   },
   // Future events with proper 30-minute alignment
   {
@@ -124,7 +118,6 @@ export const DUMMY_EVENTS: IEvent[] = [
     organizer: DUMMY_ORGANIZER,
     attendees: 8,
     agenda: "Review Q1 expenses and plan Q2 budget",
-    IsConfirmed: false, // Pending confirmation
   },
   {
     id: "7",
@@ -137,7 +130,6 @@ export const DUMMY_EVENTS: IEvent[] = [
     organizer: DUMMY_ORGANIZER,
     attendees: 6,
     agenda: "Demo new features and gather feedback",
-    IsConfirmed: false, // Pending confirmation
   },
   // Tomorrow's events
   {
@@ -151,7 +143,6 @@ export const DUMMY_EVENTS: IEvent[] = [
     organizer: DUMMY_ORGANIZER,
     attendees: 12,
     agenda: "Sprint progress and blockers",
-    IsConfirmed: true,
   },
   {
     id: "9",
@@ -164,7 +155,6 @@ export const DUMMY_EVENTS: IEvent[] = [
     organizer: DUMMY_ORGANIZER,
     attendees: 10,
     agenda: "Review sprint deliverables and next steps",
-    IsConfirmed: true,
   },
 ]
 

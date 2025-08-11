@@ -3,7 +3,6 @@
 import Reminder from "@/components/panel/reminder"
 import RoomSelector from "@/components/panel/room-selector"
 import Notifications from "@/components/sheet/notifications"
-import MeetingConfirmation from "@/components/sheet/meeting-confirmation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,6 +16,7 @@ import { BookingForm } from "@/app/form/new-booking"
 import { ViewEvent } from "@/components/calendar/view-event"
 import {
   addMonths,
+  // eachDayOfInterval, // Removed due to missing export
   endOfMonth,
   format,
   getDay,
@@ -25,11 +25,10 @@ import {
   startOfMonth,
   subMonths,
 } from "date-fns"
-import { CalendarDays, ChevronLeft, ChevronRight, Plus, Calendar } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { useMemo, useState } from "react"
 import ProfileMenu from "@/components/profile/profile-menu"
 import type { IEvent } from "@/models/IEvent"
-import { toast } from "sonner"
 
 // Get today's date at midnight
 const today = new Date()
@@ -46,65 +45,13 @@ export default function EventCalendar() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogSlotTime, setDialogSlotTime] = useState<Date | null>(null)
 
-  const [events, setEvents] = useState<IEvent[]>(DUMMY_EVENTS)
+  const [events, setEvents] = useState<IEvent[]>([])
   const [editingEvent, setEditingEvent] = useState<IEvent | null>(null)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
 
   // New state for view event dialog
   const [viewingEvent, setViewingEvent] = useState<IEvent | null>(null)
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
-
-  // State for meeting confirmation sheet
-  const [confirmationSheetOpen, setConfirmationSheetOpen] = useState(false)
-
-  // State for notifications
-  const [notifications, setNotifications] = useState<Array<{
-    id: string;
-    type: 'info' | 'warning' | 'success' | 'error';
-    title: string;
-    message: string;
-    timestamp: Date;
-    read: boolean;
-  }>>([])
-
-  // Update boardroom availability based on confirmed events
-  const updatedBoardrooms = useMemo(() => {
-    return BOARDROOMS.map(boardroom => {
-      const now = new Date()
-      const hasActiveConfirmedMeeting = events.some(event => 
-        event.boardroom.id === boardroom.id &&
-        event.IsConfirmed === true &&
-        now >= event.startTime &&
-        now <= event.endTime
-      )
-      
-      return {
-        ...boardroom,
-        availability: !hasActiveConfirmedMeeting
-      }
-    })
-  }, [events])
-
-  // Count pending confirmations
-  const pendingConfirmationsCount = useMemo(() => {
-    return events.filter(event => 
-      event.IsConfirmed === false && 
-      event.startTime > new Date()
-    ).length
-  }, [events])
-
-  // Helper function to add notification
-  const addNotification = (type: 'info' | 'warning' | 'success' | 'error', title: string, message: string) => {
-    const notification = {
-      id: Math.random().toString(36).slice(2),
-      type,
-      title,
-      message,
-      timestamp: new Date(),
-      read: false
-    }
-    setNotifications(prev => [notification, ...prev])
-  }
 
   const daysOfWeek = [
     { label: "M", key: "mon" },
@@ -119,6 +66,7 @@ export default function EventCalendar() {
   const getDaysInMonth = (date: Date) => {
     const start = startOfMonth(date)
     const end = endOfMonth(date)
+    // Manually create array of days in interval since eachDayOfInterval is not available
     const days: Date[] = []
     const current = new Date(start)
     while (current <= end) {
@@ -126,12 +74,14 @@ export default function EventCalendar() {
       current.setDate(current.getDate() + 1)
     }
 
-    const firstDayOfWeek = (getDay(start) + 6) % 7
+    // Add leading days from previous month to fill the first week (Monday as first day)
+    const firstDayOfWeek = (getDay(start) + 6) % 7 // Adjust to make Monday=0, Sunday=6
     for (let i = 0; i < firstDayOfWeek; i++) {
       days.unshift(new Date(start.getFullYear(), start.getMonth(), start.getDate() - (firstDayOfWeek - i)))
     }
 
-    const lastDayOfWeek = (getDay(end) + 6) % 7
+    // Add trailing days from next month to fill the last week
+    const lastDayOfWeek = (getDay(end) + 6) % 7 // Adjust to make Monday=0, Sunday=6
     for (let i = 0; i < 6 - lastDayOfWeek; i++) {
       days.push(new Date(end.getFullYear(), end.getMonth(), end.getDate() + (i + 1)))
     }
@@ -141,6 +91,7 @@ export default function EventCalendar() {
 
   const days = useMemo(() => getDaysInMonth(currentMonth), [currentMonth])
 
+  // 48 slots for 24 hours, each 30 min
   const timeSlots = Array.from({ length: 48 }, (_, i) => {
     const hour = Math.floor(i / 2)
     const minute = (i % 2) * 30
@@ -148,45 +99,28 @@ export default function EventCalendar() {
   })
 
   const filteredEvents = useMemo(() => {
-    return events.filter(
+    const allEvents = [...DUMMY_EVENTS, ...events]
+    return allEvents.filter(
       (event) =>
         isSameDay(event.startTime, selectedDate) && (!selectedBoardroom || event.boardroom.id === selectedBoardroom.id),
     )
   }, [selectedDate, selectedBoardroom, events])
 
-  // Find current meeting (meeting in progress right now)
-  const currentMeeting = useMemo(() => {
-    const now = new Date()
-    
-    const currentEvents = events.filter(
-      (event) => 
-        event.boardroom.id === selectedBoardroom.id &&
-        event.IsConfirmed === true &&
-        now >= event.startTime &&
-        now <= event.endTime
-    )
-
-    // Return the first current meeting (there should only be one per room)
-    return currentEvents.length > 0 ? currentEvents[0] : null
-  }, [events, selectedBoardroom])
-
-  // Find next upcoming meeting (only if no current meeting)
+  // Find next upcoming meeting
   const nextMeeting = useMemo(() => {
-    // If there's a current meeting, don't show upcoming
-    if (currentMeeting) return null
-    
     const now = new Date()
+    const allEvents = [...DUMMY_EVENTS, ...events]
 
-    const upcomingEvents = events.filter(
-      (event) => 
-        event.startTime > now && 
-        event.boardroom.id === selectedBoardroom.id
+    // Filter events that start after current time AND are in the selected boardroom
+    const upcomingEvents = allEvents.filter(
+      (event) => event.startTime > now && event.boardroom.id === selectedBoardroom.id,
     )
 
+    // Sort by start time and get the first one
     const sortedEvents = upcomingEvents.sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
 
     return sortedEvents.length > 0 ? sortedEvents[0] : null
-  }, [events, selectedBoardroom, currentMeeting])
+  }, [events, selectedBoardroom])
 
   const handlePrevMonth = () => {
     setCurrentMonth(subMonths(currentMonth, 1))
@@ -200,104 +134,41 @@ export default function EventCalendar() {
     const today = new Date()
     setSelectedDate(today)
     setCurrentMonth(startOfMonth(today))
-    toast.info("Navigated to today", {
-      description: `Viewing ${format(today, "MMMM dd, yyyy")}`
-    })
-    addNotification('info', 'Calendar Navigation', `Navigated to today's date: ${format(today, "MMMM dd, yyyy")}`)
   }
 
   const handleBookingSuccess = (newEvent: IEvent) => {
-    setEvents((prev) => [...prev, { ...newEvent, IsConfirmed: false }])
+    setEvents((prev) => [...prev, newEvent])
     setDialogOpen(false)
-    
-    toast.success("Meeting created successfully!", {
-      description: `${newEvent.title} scheduled for ${format(newEvent.startTime, "MMM dd, h:mm a")} in ${newEvent.boardroom.name}`
-    })
-    
-    addNotification('success', 'Meeting Created', 
-      `${newEvent.title} has been scheduled for ${format(newEvent.startTime, "MMM dd, h:mm a")} in ${newEvent.boardroom.name}. Confirmation required.`)
   }
 
+  // Updated to show view dialog first
   const handleEventClick = (event: IEvent) => {
     setViewingEvent(event)
     setViewDialogOpen(true)
   }
 
+  // Handle edit from view dialog
   const handleEventEdit = (event: IEvent) => {
     setEditingEvent(event)
     setEditDialogOpen(true)
   }
 
   const handleEventUpdate = (updatedEvent: IEvent) => {
-    setEvents((prev) => prev.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)))
+    if (DUMMY_EVENTS.find((e) => e.id === updatedEvent.id)) {
+      // If it's a dummy event, add it to our events state as a new event
+      setEvents((prev) => [...prev, { ...updatedEvent, id: Math.random().toString(36).slice(2) }])
+    } else {
+      // If it's a user-created event, update it in the events state
+      setEvents((prev) => prev.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)))
+    }
     setEditDialogOpen(false)
     setEditingEvent(null)
-    
-    toast.success("Meeting updated successfully!", {
-      description: `${updatedEvent.title} has been updated`
-    })
-    
-    addNotification('success', 'Meeting Updated', 
-      `${updatedEvent.title} scheduled for ${format(updatedEvent.startTime, "MMM dd, h:mm a")} has been updated.`)
   }
 
   const handleEventDelete = (eventId: string) => {
-    const eventToDelete = events.find(e => e.id === eventId)
     setEvents((prev) => prev.filter((e) => e.id !== eventId))
     setEditDialogOpen(false)
     setEditingEvent(null)
-    setViewDialogOpen(false)
-    
-    if (eventToDelete) {
-      toast.success("Meeting deleted successfully!", {
-        description: `${eventToDelete.title} has been removed from your calendar`
-      })
-      
-      addNotification('info', 'Meeting Deleted', 
-        `${eventToDelete.title} scheduled for ${format(eventToDelete.startTime, "MMM dd, h:mm a")} has been deleted.`)
-    }
-  }
-
-  // Handle event confirmation
-  const handleEventConfirm = (eventId: string) => {
-    const event = events.find(e => e.id === eventId)
-    setEvents((prev) => 
-      prev.map((event) => 
-        event.id === eventId ? { ...event, IsConfirmed: true } : event
-      )
-    )
-    
-    if (event) {
-      toast.success("Meeting confirmed!", {
-        description: `${event.title} on ${format(event.startTime, "MMM dd, h:mm a")} has been confirmed`
-      })
-      
-      addNotification('success', 'Meeting Confirmed', 
-        `${event.title} scheduled for ${format(event.startTime, "MMM dd, h:mm a")} in ${event.boardroom.name} has been confirmed.`)
-    }
-  }
-
-  // Handle event cancellation
-  const handleEventCancel = (eventId: string) => {
-    const event = events.find(e => e.id === eventId)
-    setEvents((prev) => prev.filter((e) => e.id !== eventId))
-    
-    if (event) {
-      toast.error("Meeting cancelled", {
-        description: `${event.title} on ${format(event.startTime, "MMM dd, h:mm a")} has been cancelled`
-      })
-      
-      addNotification('warning', 'Meeting Cancelled', 
-        `${event.title} scheduled for ${format(event.startTime, "MMM dd, h:mm a")} has been cancelled.`)
-    }
-  }
-
-  const handleRoomChange = (room: typeof BOARDROOMS[0]) => {
-    setSelectedBoardroom(room)
-    toast.info("Room changed", {
-      description: `Now viewing ${room.name}`
-    })
-    addNotification('info', 'Room Selection', `Switched to viewing ${room.name}`)
   }
 
   return (
@@ -307,11 +178,7 @@ export default function EventCalendar() {
         {/* Left Panel: Mini Calendar */}
         <div className="w-80 ml-4 mt-2">
           {/* Boardroom Switch */}
-          <RoomSelector 
-            selectedBoardroom={selectedBoardroom} 
-            onSelectBoardroom={handleRoomChange}
-            boardrooms={updatedBoardrooms}
-          />
+          <RoomSelector selectedBoardroom={selectedBoardroom} onSelectBoardroom={setSelectedBoardroom} />
           {/* Mini Calendar */}
           <Card className="rounded-3xl shadow-lg border-0 bg-gradient-to-br from-zinc-100 via-white to-teal-100">
             <CardContent className="p-4">
@@ -349,7 +216,9 @@ export default function EventCalendar() {
                   const isCurrentDay = isToday(day)
                   const isSelected = isSameDay(day, selectedDate)
 
+                  // Highlight current week in the viewed month
                   const weekDay = day.getDay()
+                  // Find the Monday of this week
                   const weekStart = new Date(day)
                   weekStart.setDate(day.getDate() - ((weekDay + 6) % 7))
                   weekStart.setHours(0, 0, 0, 0)
@@ -357,6 +226,7 @@ export default function EventCalendar() {
                   weekEnd.setDate(weekStart.getDate() + 6)
                   weekEnd.setHours(23, 59, 59, 999)
 
+                  // Is this day in the same week as today?
                   const today = new Date()
                   today.setHours(0, 0, 0, 0)
                   const todayWeekDay = today.getDay()
@@ -379,18 +249,11 @@ export default function EventCalendar() {
                         ${!isCurrentMonth ? "text-muted-foreground opacity-40" : ""}
                         ${isCurrentWeek ? "bg-em-100" : ""}
                         ${isCurrentDay ? "ring-2 ring-emerald-400 ring-offset-2 text-emerald-700 bg-emerald-100" : ""}
+                       n
                         ${isCurrentDay && isSelected ? "ring-2 ring-emerald-600" : ""}
                         hover:bg-emerald-50
                       `}
-                      onClick={() => {
-                        setSelectedDate(day)
-                        if (!isSameDay(day, selectedDate)) {
-                          toast.info("Date selected", {
-                            description: `Viewing ${format(day, "MMMM dd, yyyy")}`
-                          })
-                          addNotification('info', 'Date Selection', `Selected ${format(day, "MMMM dd, yyyy")}`)
-                        }
-                      }}
+                      onClick={() => setSelectedDate(day)}
                     >
                       {format(day, "d")}
                     </Button>
@@ -400,11 +263,7 @@ export default function EventCalendar() {
             </CardContent>
           </Card>
           <Separator className="mt-4" />
-          <Reminder 
-            nextMeeting={nextMeeting} 
-            currentMeeting={currentMeeting}
-            selectedBoardroom={selectedBoardroom}
-          />
+          <Reminder nextMeeting={nextMeeting} />
         </div>
         <div className="w-6 flex-shrink-0" />
         {/* Right Panel: Header and Time Grid */}
@@ -471,35 +330,14 @@ export default function EventCalendar() {
                     >
                       <ChevronRight className="h-4 w-4 " />
                     </Button>
-                    
-                    {/* Meeting Confirmation Button */}
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer relative"
-                      aria-label="Meeting Confirmations"
-                      onClick={() => setConfirmationSheetOpen(true)}
-                    >
-                      <Calendar className="h-5 w-5" />
-                      {pendingConfirmationsCount > 0 && (
-                        <Badge 
-                          variant="destructive" 
-                          className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-                        >
-                          {pendingConfirmationsCount}
-                        </Badge>
-                      )}
-                    </Button>
-                    
-                    <Notifications notifications={notifications} onMarkAsRead={(id) => {
-                      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
-                    }} />
+                    <Notifications />
                     <ProfileMenu />
                   </div>
                 </div>
                 {/* Week Card UI */}
                 <div className="flex gap-2 w-full ">
                   {(() => {
+                    // Calculate the start of the week (Monday)
                     const weekStart = new Date(selectedDate)
                     weekStart.setDate(selectedDate.getDate() - ((selectedDate.getDay() + 6) % 7))
                     return Array.from({ length: 7 }).map((_, i) => {
@@ -543,6 +381,7 @@ export default function EventCalendar() {
                           slot.minute === 0 && slot.hour % 6 === 0 ? "font-bold text-gray-700" : ""
                         }`}
                       >
+                        {/* Only show label on the hour */}
                         {slot.minute === 0 ? (
                           <span>{format(new Date(2000, 0, 1, slot.hour, 0), "h a")}</span>
                         ) : (
@@ -604,18 +443,14 @@ export default function EventCalendar() {
                       const endMinutes = event.endTime.getHours() * 60 + event.endTime.getMinutes()
                       const durationMinutes = endMinutes - startMinutes
 
+                      // Calculate top position and height in 30-min slots
                       const topPosition = (startMinutes / 30) * SLOT_HEIGHT
                       const height = (durationMinutes / 30) * SLOT_HEIGHT
-
-                      // Add visual indicator for unconfirmed events
-                      const eventClassName = event.IsConfirmed === false 
-                        ? `${event.color} opacity-60 border-2 border-dashed border-amber-400`
-                        : event.color
 
                       return (
                         <div
                           key={event.id}
-                          className={`absolute left-2 right-2 rounded-md p-2 text-xs overflow-hidden cursor-pointer transition hover:brightness-95 active:scale-[0.98] ${eventClassName}`}
+                          className={`absolute left-2 right-2 rounded-md p-2 text-xs overflow-hidden cursor-pointer transition hover:brightness-95 active:scale-[0.98] ${event.color}`}
                           style={{
                             top: topPosition,
                             height: height,
@@ -626,20 +461,19 @@ export default function EventCalendar() {
                           <p className="font-semibold">{format(event.startTime, "h:mm a")}</p>
                           <p className="font-medium">{event.title}</p>
                           <p className="text-muted-foreground">{event.description}</p>
-                          {event.IsConfirmed === false && (
-                            <p className="text-xs text-amber-700 font-semibold mt-1">⏳ Pending</p>
-                          )}
                         </div>
                       )
                     })}
                     {/* Overlay clickable empty slots */}
                     <TooltipProvider>
                       {timeSlots.map((slot, idx) => {
+                        // Mark slot as unavailable if it overlaps with any event
                         const slotStart = slot.hour * 60 + slot.minute
                         const slotEnd = slotStart + 30
                         const hasEvent = filteredEvents.some((e) => {
                           const eventStart = e.startTime.getHours() * 60 + e.startTime.getMinutes()
                           const eventEnd = e.endTime.getHours() * 60 + e.endTime.getMinutes()
+                          // Slot overlaps with event if slotStart < eventEnd and slotEnd > eventStart
                           return slotStart < eventEnd && slotEnd > eventStart
                         })
                         if (hasEvent) return null
@@ -706,15 +540,6 @@ export default function EventCalendar() {
         </div>
       </div>
 
-      {/* Meeting Confirmation Sheet */}
-      <MeetingConfirmation
-        open={confirmationSheetOpen}
-        onOpenChange={setConfirmationSheetOpen}
-        onEventConfirm={handleEventConfirm}
-        onEventCancel={handleEventCancel}
-        events={events}
-      />
-
       {/* View Event Dialog */}
       <ViewEvent
         event={viewingEvent}
@@ -737,6 +562,7 @@ export default function EventCalendar() {
                 {format(dialogSlotTime, "MMMM dd, yyyy h:mm a")}
               </div>
             )}
+            {/* Booking form inserted below */}
             <BookingForm
               slotTime={dialogSlotTime}
               boardroom={selectedBoardroom}

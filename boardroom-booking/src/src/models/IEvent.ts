@@ -12,5 +12,4 @@ export interface IEvent {
   attendees?: number;
   agenda?: string;
   organizer?: IOrganizer;
-  IsConfirmed?: boolean;
 }

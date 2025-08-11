@@ -12,6 +12,12 @@ import { z } from "zod"
 import { format } from "date-fns"
 import type { IEvent } from "@/models/IEvent"
 
+const formSchema = z.object({
+  title: z.string().min(2, { message: "Title required." }),
+  description: z.string().optional(),
+  endTime: z.string().min(1, { message: "End time required." }),
+})
+
 export interface BookingFormProps {
   slotTime: Date | null
   boardroom: { id: string; name: string; capacity: number; availability: boolean; isConfirmed: boolean }
@@ -25,36 +31,12 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
   const [success, setSuccess] = useState<string | null>(null)
   const isEditing = !!existingEvent
 
-  // Create dynamic schema with boardroom capacity validation
-  const formSchema = z.object({
-    title: z.string().min(2, { message: "Title required." }),
-    description: z.string().optional(),
-    agenda: z.string().optional(),
-    attendees: z
-      .string()
-      .optional()
-      .refine(
-        (val) => {
-          if (!val) return true // Optional field, so empty is valid
-          const num = Number.parseInt(val)
-          if (isNaN(num) || num <= 0) return false
-          return num <= boardroom.capacity
-        },
-        {
-          message: `Number of attendees cannot exceed boardroom capacity (${boardroom.capacity}).`,
-        },
-      ),
-    endTime: z.string().min(1, { message: "End time required." }),
-  })
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: existingEvent?.title || "",
       description: existingEvent?.description || "",
       endTime: existingEvent ? format(existingEvent.endTime, "HH:mm") : "",
-      agenda: existingEvent?.agenda || "",
-      attendees: existingEvent?.attendees?.toString() || "",
     },
   })
 
@@ -93,8 +75,6 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
       id: existingEvent?.id || Math.random().toString(36).slice(2),
       title: values.title,
       description: values.description ?? "",
-      agenda: values.agenda || undefined,
-      attendees: values.attendees ? Number.parseInt(values.attendees) : undefined,
       startTime: start,
       endTime: end,
       boardroom,
@@ -144,38 +124,6 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
               <FormLabel>Description</FormLabel>
               <FormControl>
                 <Textarea {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="agenda"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Agenda</FormLabel>
-              <FormControl>
-                <Textarea {...field} placeholder="Meeting agenda..." />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="attendees"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Number of Attendees</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  min="1"
-                  max={boardroom.capacity}
-                  placeholder={`Max ${boardroom.capacity} attendees`}
-                  {...field}
-                />
               </FormControl>
               <FormMessage />
             </FormItem>

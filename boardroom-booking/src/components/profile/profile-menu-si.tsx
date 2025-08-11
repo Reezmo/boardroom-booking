@@ -12,8 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { User, Settings, LogOut, Calendar, Building } from 'lucide-react'
-import type { IUser } from "../../models/IUser" 
-import { DUMMY_USER } from "../../mock/mockData" 
+import type { IUser } from "../../models/IUser" // Adjusted path
+import { DUMMY_USER } from "../../mock/mockData" // Adjusted path
 
 export default function ProfileMenu() {
   const [user] = useState<IUser>(DUMMY_USER)
