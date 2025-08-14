@@ -1,9 +1,15 @@
 "use client"
 
+import { BookingForm } from "@/app/form/new-booking"
+import { DailyView } from "@/components/calendar/daily-view"
+import { MonthlyView } from "@/components/calendar/monthly-view"
+import { ViewEvent } from "@/components/calendar/view-event"
+import { WeeklyView } from "@/components/calendar/weekly-view"
 import Reminder from "@/components/panel/reminder"
 import RoomSelector from "@/components/panel/room-selector"
-import Notifications from "@/components/sheet/notifications"
+import ProfileMenu from "@/components/profile/profile-menu"
 import MeetingConfirmation from "@/components/sheet/meeting-confirmation"
+import Notifications from "@/components/sheet/notifications"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -11,24 +17,11 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { BOARDROOMS, DUMMY_EVENTS } from "@/mock/mockData"
-import { BookingForm } from "@/app/form/new-booking"
-import { ViewEvent } from "@/components/calendar/view-event"
-import {
-  addMonths,
-  endOfMonth,
-  format,
-  getDay,
-  isSameDay,
-  isToday,
-  startOfMonth,
-  subMonths,
-} from "date-fns"
-import { CalendarDays, ChevronLeft, ChevronRight, Plus, Calendar } from 'lucide-react'
-import { useMemo, useState } from "react"
-import ProfileMenu from "@/components/profile/profile-menu"
 import type { IEvent } from "@/models/IEvent"
+import { addMonths, endOfMonth, format, getDay, isSameDay, isToday, startOfMonth, subMonths } from "date-fns"
+import { Calendar, CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
+import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
 // Get today's date at midnight
@@ -58,52 +51,55 @@ export default function EventCalendar() {
   const [confirmationSheetOpen, setConfirmationSheetOpen] = useState(false)
 
   // State for notifications
-  const [notifications, setNotifications] = useState<Array<{
-    id: string;
-    type: 'info' | 'warning' | 'success' | 'error';
-    title: string;
-    message: string;
-    timestamp: Date;
-    read: boolean;
-  }>>([])
+  const [notifications, setNotifications] = useState<
+    Array<{
+      id: string
+      type: "info" | "warning" | "success" | "error"
+      title: string
+      message: string
+      timestamp: Date
+      read: boolean
+    }>
+  >([])
+
+  // New state for active calendar tab
+  const [activeTab, setActiveTab] = useState("day")
 
   // Update boardroom availability based on confirmed events
   const updatedBoardrooms = useMemo(() => {
-    return BOARDROOMS.map(boardroom => {
+    return BOARDROOMS.map((boardroom) => {
       const now = new Date()
-      const hasActiveConfirmedMeeting = events.some(event => 
-        event.boardroom.id === boardroom.id &&
-        event.IsConfirmed === true &&
-        now >= event.startTime &&
-        now <= event.endTime
+      const hasActiveConfirmedMeeting = events.some(
+        (event) =>
+          event.boardroom.id === boardroom.id &&
+          event.IsConfirmed === true &&
+          now >= event.startTime &&
+          now <= event.endTime,
       )
-      
+
       return {
         ...boardroom,
-        availability: !hasActiveConfirmedMeeting
+        availability: !hasActiveConfirmedMeeting,
       }
     })
   }, [events])
 
   // Count pending confirmations
   const pendingConfirmationsCount = useMemo(() => {
-    return events.filter(event => 
-      event.IsConfirmed === false && 
-      event.startTime > new Date()
-    ).length
+    return events.filter((event) => event.IsConfirmed === false && event.startTime > new Date()).length
   }, [events])
 
   // Helper function to add notification
-  const addNotification = (type: 'info' | 'warning' | 'success' | 'error', title: string, message: string) => {
+  const addNotification = (type: "info" | "warning" | "success" | "error", title: string, message: string) => {
     const notification = {
       id: Math.random().toString(36).slice(2),
       type,
       title,
       message,
       timestamp: new Date(),
-      read: false
+      read: false,
     }
-    setNotifications(prev => [notification, ...prev])
+    setNotifications((prev) => [notification, ...prev])
   }
 
   const daysOfWeek = [
@@ -157,13 +153,13 @@ export default function EventCalendar() {
   // Find current meeting (meeting in progress right now)
   const currentMeeting = useMemo(() => {
     const now = new Date()
-    
+
     const currentEvents = events.filter(
-      (event) => 
+      (event) =>
         event.boardroom.id === selectedBoardroom.id &&
         event.IsConfirmed === true &&
         now >= event.startTime &&
-        now <= event.endTime
+        now <= event.endTime,
     )
 
     // Return the first current meeting (there should only be one per room)
@@ -174,13 +170,11 @@ export default function EventCalendar() {
   const nextMeeting = useMemo(() => {
     // If there's a current meeting, don't show upcoming
     if (currentMeeting) return null
-    
+
     const now = new Date()
 
     const upcomingEvents = events.filter(
-      (event) => 
-        event.startTime > now && 
-        event.boardroom.id === selectedBoardroom.id
+      (event) => event.startTime > now && event.boardroom.id === selectedBoardroom.id,
     )
 
     const sortedEvents = upcomingEvents.sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
@@ -201,21 +195,24 @@ export default function EventCalendar() {
     setSelectedDate(today)
     setCurrentMonth(startOfMonth(today))
     toast.info("Navigated to today", {
-      description: `Viewing ${format(today, "MMMM dd, yyyy")}`
+      description: `Viewing ${format(today, "MMMM dd, yyyy")}`,
     })
-    addNotification('info', 'Calendar Navigation', `Navigated to today's date: ${format(today, "MMMM dd, yyyy")}`)
+    addNotification("info", "Calendar Navigation", `Navigated to today's date: ${format(today, "MMMM dd, yyyy")}`)
   }
 
   const handleBookingSuccess = (newEvent: IEvent) => {
     setEvents((prev) => [...prev, { ...newEvent, IsConfirmed: false }])
     setDialogOpen(false)
-    
+
     toast.success("Meeting created successfully!", {
-      description: `${newEvent.title} scheduled for ${format(newEvent.startTime, "MMM dd, h:mm a")} in ${newEvent.boardroom.name}`
+      description: `${newEvent.title} scheduled for ${format(newEvent.startTime, "MMM dd, h:mm a")} in ${newEvent.boardroom.name}`,
     })
-    
-    addNotification('success', 'Meeting Created', 
-      `${newEvent.title} has been scheduled for ${format(newEvent.startTime, "MMM dd, h:mm a")} in ${newEvent.boardroom.name}. Confirmation required.`)
+
+    addNotification(
+      "success",
+      "Meeting Created",
+      `${newEvent.title} has been scheduled for ${format(newEvent.startTime, "MMM dd, h:mm a")} in ${newEvent.boardroom.name}. Confirmation required.`,
+    )
   }
 
   const handleEventClick = (event: IEvent) => {
@@ -232,88 +229,96 @@ export default function EventCalendar() {
     setEvents((prev) => prev.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)))
     setEditDialogOpen(false)
     setEditingEvent(null)
-    
+
     toast.success("Meeting updated successfully!", {
-      description: `${updatedEvent.title} has been updated`
+      description: `${updatedEvent.title} has been updated`,
     })
-    
-    addNotification('success', 'Meeting Updated', 
-      `${updatedEvent.title} scheduled for ${format(updatedEvent.startTime, "MMM dd, h:mm a")} has been updated.`)
+
+    addNotification(
+      "success",
+      "Meeting Updated",
+      `${updatedEvent.title} scheduled for ${format(updatedEvent.startTime, "MMM dd, h:mm a")} has been updated.`,
+    )
   }
 
   const handleEventDelete = (eventId: string) => {
-    const eventToDelete = events.find(e => e.id === eventId)
+    const eventToDelete = events.find((e) => e.id === eventId)
     setEvents((prev) => prev.filter((e) => e.id !== eventId))
     setEditDialogOpen(false)
     setEditingEvent(null)
     setViewDialogOpen(false)
-    
+
     if (eventToDelete) {
       toast.success("Meeting deleted successfully!", {
-        description: `${eventToDelete.title} has been removed from your calendar`
+        description: `${eventToDelete.title} has been removed from your calendar`,
       })
-      
-      addNotification('info', 'Meeting Deleted', 
-        `${eventToDelete.title} scheduled for ${format(eventToDelete.startTime, "MMM dd, h:mm a")} has been deleted.`)
+
+      addNotification(
+        "info",
+        "Meeting Deleted",
+        `${eventToDelete.title} scheduled for ${format(eventToDelete.startTime, "MMM dd, h:mm a")} has been deleted.`,
+      )
     }
   }
 
   // Handle event confirmation
   const handleEventConfirm = (eventId: string) => {
-    const event = events.find(e => e.id === eventId)
-    setEvents((prev) => 
-      prev.map((event) => 
-        event.id === eventId ? { ...event, IsConfirmed: true } : event
-      )
-    )
-    
+    const event = events.find((e) => e.id === eventId)
+    setEvents((prev) => prev.map((event) => (event.id === eventId ? { ...event, IsConfirmed: true } : event)))
+
     if (event) {
       toast.success("Meeting confirmed!", {
-        description: `${event.title} on ${format(event.startTime, "MMM dd, h:mm a")} has been confirmed`
+        description: `${event.title} on ${format(event.startTime, "MMM dd, h:mm a")} has been confirmed`,
       })
-      
-      addNotification('success', 'Meeting Confirmed', 
-        `${event.title} scheduled for ${format(event.startTime, "MMM dd, h:mm a")} in ${event.boardroom.name} has been confirmed.`)
+
+      addNotification(
+        "success",
+        "Meeting Confirmed",
+        `${event.title} scheduled for ${format(event.startTime, "MMM dd, h:mm a")} in ${event.boardroom.name} has been confirmed.`,
+      )
     }
   }
 
   // Handle event cancellation
   const handleEventCancel = (eventId: string) => {
-    const event = events.find(e => e.id === eventId)
+    const event = events.find((e) => e.id === eventId)
     setEvents((prev) => prev.filter((e) => e.id !== eventId))
-    
+
     if (event) {
       toast.error("Meeting cancelled", {
-        description: `${event.title} on ${format(event.startTime, "MMM dd, h:mm a")} has been cancelled`
+        description: `${event.title} on ${format(event.startTime, "MMM dd, h:mm a")} has been cancelled`,
       })
-      
-      addNotification('warning', 'Meeting Cancelled', 
-        `${event.title} scheduled for ${format(event.startTime, "MMM dd, h:mm a")} has been cancelled.`)
+
+      addNotification(
+        "warning",
+        "Meeting Cancelled",
+        `${event.title} scheduled for ${format(event.startTime, "MMM dd, h:mm a")} has been cancelled.`,
+      )
     }
   }
 
-  const handleRoomChange = (room: typeof BOARDROOMS[0]) => {
+  const handleRoomChange = (room: (typeof BOARDROOMS)[0]) => {
     setSelectedBoardroom(room)
     toast.info("Room changed", {
-      description: `Now viewing ${room.name}`
+      description: `Now viewing ${room.name}`,
     })
-    addNotification('info', 'Room Selection', `Switched to viewing ${room.name}`)
+    addNotification("info", "Room Selection", `Switched to viewing ${room.name}`)
   }
 
   return (
-    <div className="flex flex-col p-4 h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-100">
+    <div className="flex flex-col p-4 h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-100 ">
       {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden py-2 ">
         {/* Left Panel: Mini Calendar */}
-        <div className="w-80 ml-4 mt-2">
+        <div className="w-80 ml-4 flex flex-col">
           {/* Boardroom Switch */}
-          <RoomSelector 
-            selectedBoardroom={selectedBoardroom} 
+          <RoomSelector
+            selectedBoardroom={selectedBoardroom}
             onSelectBoardroom={handleRoomChange}
             boardrooms={updatedBoardrooms}
           />
           {/* Mini Calendar */}
-          <Card className="rounded-3xl shadow-lg border-0 bg-gradient-to-br from-zinc-100 via-white to-teal-100">
+          <Card className="rounded-3xl shadow-lg border-0 bg-gradient-to-br from-zinc-100 via-white to-teal-100 flex-1">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <Button
@@ -374,21 +379,21 @@ export default function EventCalendar() {
                       key={index}
                       variant="ghost"
                       className={`
-                        h-9 w-9 rounded-full flex items-center justify-center font-semibold 
-                        transition-all duration-150
-                        ${!isCurrentMonth ? "text-muted-foreground opacity-40" : ""}
-                        ${isCurrentWeek ? "bg-em-100" : ""}
-                        ${isCurrentDay ? "ring-2 ring-emerald-400 ring-offset-2 text-emerald-700 bg-emerald-100" : ""}
-                        ${isCurrentDay && isSelected ? "ring-2 ring-emerald-600" : ""}
-                        hover:bg-emerald-50
-                      `}
+                      h-9 w-9 rounded-full flex items-center justify-center font-semibold 
+                      transition-all duration-150
+                      ${!isCurrentMonth ? "text-muted-foreground opacity-40" : ""}
+                      ${isCurrentWeek ? "bg-em-100" : ""}
+                      ${isCurrentDay ? "ring-2 ring-emerald-400 ring-offset-2 text-emerald-700 bg-emerald-100" : ""}
+                      ${isCurrentDay && isSelected ? "ring-2 ring-emerald-600" : ""}
+                      hover:bg-emerald-50
+                    `}
                       onClick={() => {
                         setSelectedDate(day)
                         if (!isSameDay(day, selectedDate)) {
                           toast.info("Date selected", {
-                            description: `Viewing ${format(day, "MMMM dd, yyyy")}`
+                            description: `Viewing ${format(day, "MMMM dd, yyyy")}`,
                           })
-                          addNotification('info', 'Date Selection', `Selected ${format(day, "MMMM dd, yyyy")}`)
+                          addNotification("info", "Date Selection", `Selected ${format(day, "MMMM dd, yyyy")}`)
                         }
                       }}
                     >
@@ -400,19 +405,15 @@ export default function EventCalendar() {
             </CardContent>
           </Card>
           <Separator className="mt-4" />
-          <Reminder 
-            nextMeeting={nextMeeting} 
-            currentMeeting={currentMeeting}
-            selectedBoardroom={selectedBoardroom}
-          />
+          <Reminder nextMeeting={nextMeeting} currentMeeting={currentMeeting} selectedBoardroom={selectedBoardroom} />
         </div>
         <div className="w-6 flex-shrink-0" />
         {/* Right Panel: Header and Time Grid */}
         <div className="flex-1 relative">
-          <Card className="p-2 rounded-3xl shadow-gray">
-            <CardContent className="p-0 h-full">
+          <Card className="p-2 rounded-3xl shadow-gray h-full shadow-lg">
+            <CardContent className="p-0 h-full flex flex-col">
               {/* Header */}
-              <div className="flex flex-col mb-4 p-4">
+              <div className="flex flex-col p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Badge className="rounded-full p-0 w-10 h-10 flex items-center justify-center  text-muted bg-emerald-400">
@@ -424,7 +425,7 @@ export default function EventCalendar() {
                   </div>
 
                   <div className="flex-1 flex justify-center">
-                    <Tabs defaultValue="day" className="w-full max-w-xs text-emerald-400">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-xs text-emerald-400">
                       <TabsList className="w-full flex justify-center border border-gray-200 rounded-full p-1 text-emerald-400">
                         <TabsTrigger
                           value="day"
@@ -451,14 +452,14 @@ export default function EventCalendar() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className=" rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer"
+                      className=" rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer bg-transparent"
                       onClick={() => setSelectedDate(subMonths(selectedDate, 1))}
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="outline"
-                      className=" rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer rounded-full px-4"
+                      className=" rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer rounded-full px-4 bg-transparent"
                       onClick={handleTodayClick}
                     >
                       Today
@@ -466,240 +467,90 @@ export default function EventCalendar() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer"
+                      className="rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer bg-transparent"
                       onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
                     >
                       <ChevronRight className="h-4 w-4 " />
                     </Button>
-                    
+
                     {/* Meeting Confirmation Button */}
                     <Button
                       variant="outline"
                       size="icon"
-                      className="rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer relative"
+                      className="rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer relative bg-transparent"
                       aria-label="Meeting Confirmations"
                       onClick={() => setConfirmationSheetOpen(true)}
                     >
                       <Calendar className="h-5 w-5" />
                       {pendingConfirmationsCount > 0 && (
-                        <Badge 
-                          variant="destructive" 
+                        <Badge
+                          variant="destructive"
                           className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
                         >
                           {pendingConfirmationsCount}
                         </Badge>
                       )}
                     </Button>
-                    
-                    <Notifications notifications={notifications} onMarkAsRead={(id) => {
-                      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
-                    }} />
+
+                    <Notifications
+                      notifications={notifications}
+                      onMarkAsRead={(id) => {
+                        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+                      }}
+                    />
                     <ProfileMenu />
                   </div>
                 </div>
                 {/* Week Card UI */}
-                <div className="flex gap-2 w-full ">
-                  {(() => {
-                    const weekStart = new Date(selectedDate)
-                    weekStart.setDate(selectedDate.getDate() - ((selectedDate.getDay() + 6) % 7))
-                    return Array.from({ length: 7 }).map((_, i) => {
-                      const day = new Date(weekStart)
-                      day.setDate(weekStart.getDate() + i)
-                      const isCurrentDay = isToday(day)
-                      const isSelected = isSameDay(day, selectedDate)
-                      return (
-                        <div
-                          key={i}
-                          className={`flex flex-col items-center justify-center flex-1 rounded-2xl px-0 py-2 cursor-pointer transition
-                            ${
-                              isCurrentDay
-                                ? "bg-emerald-50 text-emerald-400 font-bold shadow rounded-2xl"
-                                : isSelected
-                                  ? "bg-teal-100 text-emerald-400 font-bold shadow rounded-2xl"
-                                  : "bg-white text-zinc-400 font-bold shadow rounded-2xl"
-                            }
-                            border border-gray-200`}
-                          style={{ minWidth: 0 }}
-                          onClick={() => setSelectedDate(day)}
-                        >
-                          <span className="text-xs uppercase">{format(day, "EEE")}</span>
-                          <span className="text-lg">{format(day, "d")}</span>
-                        </div>
-                      )
-                    })
-                  })()}
-                </div>
+                
               </div>
               {/* Time Grid and Events */}
-              <ScrollArea className="h-[calc(100vh-215px)] rounded-3xl">
-                <div className="grid grid-cols-[60px_1fr] h-full">
-                  {/* Time Labels */}
-                  <div className="sticky left-0 z-10 pr-2 text-right text-xs text-muted-foreground pt-[30px] select-none">
-                    {timeSlots.map((slot, idx) => (
-                      <div
-                        key={idx}
-                        style={{ height: SLOT_HEIGHT, lineHeight: `${SLOT_HEIGHT}px` }}
-                        className={`flex items-start justify-end ${
-                          slot.minute === 0 && slot.hour % 6 === 0 ? "font-bold text-gray-700" : ""
-                        }`}
-                      >
-                        {slot.minute === 0 ? (
-                          <span>{format(new Date(2000, 0, 1, slot.hour, 0), "h a")}</span>
-                        ) : (
-                          <span className="opacity-0 select-none">--</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  {/* Time Lines and Events */}
-                  <div className="relative">
-                    {/* Background stripes */}
-                    {timeSlots.map((slot, idx) => (
-                      <div
-                        key={`line-bg-${idx}`}
-                        className="absolute left-0 right-0 w-full"
-                        style={{
-                          top: idx * SLOT_HEIGHT,
-                          height: SLOT_HEIGHT,
-                          backgroundColor: idx % 2 === 0 ? "#ffffffff" : "#f6ffffff",
-                          zIndex: 0,
-                        }}
-                        aria-hidden="true"
-                      />
-                    ))}
-                    {/* Main hour lines */}
-                    {timeSlots.map((slot, idx) =>
-                      slot.minute === 0 ? (
-                        <div
-                          key={`line-${idx}`}
-                          className="absolute left-0 right-0 border-t border-gray-200"
-                          style={{
-                            top: idx * SLOT_HEIGHT,
-                            height: 0,
-                            zIndex: 1,
-                            opacity: 0.5,
-                          }}
-                        />
-                      ) : null,
-                    )}
-                    {/* 30-min interval lines, faintest */}
-                    {timeSlots.map((slot, idx) =>
-                      slot.minute === 30 ? (
-                        <div
-                          key={`half-line-${idx}`}
-                          className="absolute left-0 right-0 border-t border-gray-200"
-                          style={{
-                            top: idx * SLOT_HEIGHT,
-                            height: 0,
-                            zIndex: 1,
-                            opacity: 0.18,
-                          }}
-                          aria-hidden="true"
-                        />
-                      ) : null,
-                    )}
-                    {/* Events */}
-                    {filteredEvents.map((event) => {
-                      const startMinutes = event.startTime.getHours() * 60 + event.startTime.getMinutes()
-                      const endMinutes = event.endTime.getHours() * 60 + event.endTime.getMinutes()
-                      const durationMinutes = endMinutes - startMinutes
+              <ScrollArea className="flex-1 rounded-3xl">
+                {activeTab === "day" && (
+                  <DailyView
+                    selectedDate={selectedDate}
+                    setSelectedDate={setSelectedDate}
+                    selectedBoardroom={selectedBoardroom}
+                    filteredEvents={filteredEvents}
+                    onEventClick={handleEventClick}
+                    onSlotClick={(slotTime) => {
+                      setDialogSlotTime(slotTime)
+                      setDialogOpen(true)
+                    }}
+                  />
+                )}
 
-                      const topPosition = (startMinutes / 30) * SLOT_HEIGHT
-                      const height = (durationMinutes / 30) * SLOT_HEIGHT
+                {activeTab === "week" && (
+                  <WeeklyView
+                    selectedDate={selectedDate}
+                    setSelectedDate={setSelectedDate}
+                    selectedBoardroom={selectedBoardroom}
+                    events={events} // WeeklyView filters events internally for the week
+                    onEventClick={handleEventClick}
+                    onSlotClick={(slotTime) => {
+                      setDialogSlotTime(slotTime)
+                      setDialogOpen(true)
+                    }}
+                  />
+                )}
 
-                      // Add visual indicator for unconfirmed events
-                      const eventClassName = event.IsConfirmed === false 
-                        ? `${event.color} opacity-60 border-2 border-dashed border-amber-400`
-                        : event.color
-
-                      return (
-                        <div
-                          key={event.id}
-                          className={`absolute left-2 right-2 rounded-md p-2 text-xs overflow-hidden cursor-pointer transition hover:brightness-95 active:scale-[0.98] ${eventClassName}`}
-                          style={{
-                            top: topPosition,
-                            height: height,
-                            minHeight: "20px",
-                          }}
-                          onClick={() => handleEventClick(event)}
-                        >
-                          <p className="font-semibold">{format(event.startTime, "h:mm a")}</p>
-                          <p className="font-medium">{event.title}</p>
-                          <p className="text-muted-foreground">{event.description}</p>
-                          {event.IsConfirmed === false && (
-                            <p className="text-xs text-amber-700 font-semibold mt-1">⏳ Pending</p>
-                          )}
-                        </div>
-                      )
-                    })}
-                    {/* Overlay clickable empty slots */}
-                    <TooltipProvider>
-                      {timeSlots.map((slot, idx) => {
-                        const slotStart = slot.hour * 60 + slot.minute
-                        const slotEnd = slotStart + 30
-                        const hasEvent = filteredEvents.some((e) => {
-                          const eventStart = e.startTime.getHours() * 60 + e.startTime.getMinutes()
-                          const eventEnd = e.endTime.getHours() * 60 + e.endTime.getMinutes()
-                          return slotStart < eventEnd && slotEnd > eventStart
-                        })
-                        if (hasEvent) return null
-                        const slotDate = new Date(
-                          selectedDate.getFullYear(),
-                          selectedDate.getMonth(),
-                          selectedDate.getDate(),
-                          slot.hour,
-                          slot.minute,
-                        )
-                        return (
-                          <div
-                            key={`empty-slot-overlay-${idx}`}
-                            className="absolute left-2 right-2"
-                            style={{
-                              top: idx * SLOT_HEIGHT,
-                              height: SLOT_HEIGHT - 4,
-                              zIndex: 3,
-                            }}
-                          >
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  className="group w-full h-full flex items-center justify-center rounded-lg focus:outline-none"
-                                  style={{
-                                    background: "transparent",
-                                    height: "100%",
-                                  }}
-                                  tabIndex={0}
-                                  aria-label={`Add event at ${format(slotDate, "h:mm a")}`}
-                                  onClick={() => {
-                                    setDialogSlotTime(slotDate)
-                                    setDialogOpen(true)
-                                  }}
-                                >
-                                  <span
-                                    className="hidden group-hover:flex items-center justify-center w-full h-full border-2 border-dotted border-emerald-200 rounded-lg bg-white/70 transition"
-                                    style={{
-                                      position: "absolute",
-                                      left: 0,
-                                      top: 0,
-                                      height: "100%",
-                                      width: "100%",
-                                      zIndex: 4,
-                                    }}
-                                  >
-                                    <Plus className="w-5 h-5 text-emerald-400 opacity-70" />
-                                  </span>
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <span>Add event at {format(slotDate, "h:mm a")}</span>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
-                        )
-                      })}
-                    </TooltipProvider>
-                  </div>
-                </div>
+                {activeTab === "month" && (
+                  <MonthlyView
+                    selectedDate={selectedDate}
+                    selectedBoardroom={selectedBoardroom}
+                    events={events} // MonthlyView filters events internally for the month
+                    onEventClick={handleEventClick}
+                    onDayClick={(date) => {
+                      setSelectedDate(date)
+                      // Optionally switch to day view when a day is clicked in month view
+                      setActiveTab("day")
+                      toast.info("Date selected", {
+                        description: `Viewing ${format(date, "MMMM dd, yyyy")}`,
+                      })
+                      addNotification("info", "Date Selection", `Selected ${format(date, "MMMM dd, yyyy")}`)
+                    }}
+                  />
+                )}
               </ScrollArea>
             </CardContent>
           </Card>

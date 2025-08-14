@@ -1,12 +1,9 @@
 "use client"
 
-import { format, startOfMonth, endOfMonth, isSameMonth, isToday, isSameDay, getDay } from "date-fns"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Plus } from "lucide-react"
-import type { IEvent } from "@/models/IEvent"
 import type { IBoardroom } from "@/models/IBoardroom"
+import type { IEvent } from "@/models/IEvent"
+import { endOfMonth, format, getDay, isSameDay, isSameMonth, isToday, startOfMonth } from "date-fns"
 
 interface MonthlyViewProps {
   selectedDate: Date
@@ -14,7 +11,6 @@ interface MonthlyViewProps {
   events: IEvent[]
   onEventClick: (event: IEvent) => void
   onDayClick: (date: Date) => void
-  onSlotClick: (slotTime: Date) => void
 }
 
 export function MonthlyView({
@@ -23,7 +19,6 @@ export function MonthlyView({
   events,
   onEventClick,
   onDayClick,
-  onSlotClick,
 }: MonthlyViewProps) {
   const monthStart = startOfMonth(selectedDate)
   const monthEnd = endOfMonth(selectedDate)
@@ -57,6 +52,7 @@ export function MonthlyView({
   }
 
   const days = getDaysInMonth()
+  const numRows = days.length / 7
 
   // Filter events for the current month and boardroom
   const monthEvents = events.filter((event) => event.boardroom.id === selectedBoardroom.id)
@@ -69,18 +65,22 @@ export function MonthlyView({
   const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
   return (
-    <div className="h-[calc(100vh-215px)] flex flex-col">
+    <div className="h-[calc(100vh-215px)] flex flex-col p-2 bg-gray-50/50">
       {/* Month header with days of week */}
       <div className="grid grid-cols-7 gap-1 mb-2 flex-shrink-0">
         {daysOfWeek.map((day) => (
-          <div key={day} className="p-2 text-center text-sm font-semibold text-gray-600 uppercase tracking-wide">
+          <div key={day} className="p-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
             {day}
           </div>
         ))}
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-1 flex-1 min-h-0">
+      <div
+        className={`grid grid-cols-7 gap-1 flex-1 min-h-0 ${
+          numRows === 6 ? "grid-rows-6" : numRows === 5 ? "grid-rows-5" : "grid-rows-4"
+        }`}
+      >
         {days.map((day, index) => {
           const isCurrentMonth = isSameMonth(day, selectedDate)
           const isCurrentDay = isToday(day)
@@ -92,20 +92,20 @@ export function MonthlyView({
             <div
               key={index}
               className={`
-                relative border border-gray-200 rounded-lg p-2 cursor-pointer transition-all hover:bg-gray-50 flex flex-col min-h-0
-                ${!isCurrentMonth ? "bg-gray-50 opacity-60" : "bg-white"}
-                ${isCurrentDay ? "ring-2 ring-emerald-400 bg-emerald-50" : ""}
-                ${isSelected ? "ring-2 ring-blue-400 bg-blue-50" : ""}
+                relative bg-white rounded-lg p-2 cursor-pointer transition-colors hover:bg-gray-100 flex flex-col min-h-0
+                ${!isCurrentMonth ? "bg-gray-50 text-gray-400" : ""}
+                ${isSelected && isCurrentMonth ? "bg-blue-50 ring-2 ring-blue-200" : ""}
               `}
               onClick={() => onDayClick(day)}
             >
               {/* Day number */}
-              <div className="flex items-center justify-between mb-1 flex-shrink-0">
+              <div className="flex items-center justify-between mb-2 flex-shrink-0">
                 <span
                   className={`
-                    text-sm font-semibold
-                    ${!isCurrentMonth ? "text-gray-400" : "text-gray-700"}
-                    ${isCurrentDay ? "text-emerald-600" : ""}
+                    text-sm font-medium flex items-center justify-center h-7 w-7 rounded-full
+                    ${!isCurrentMonth ? "text-gray-400" : "text-gray-600"}
+                    ${isCurrentDay ? "bg-emerald-500 text-white font-semibold" : ""}
+                    ${isSelected && !isCurrentDay ? "bg-blue-500 text-white" : ""}
                   `}
                 >
                   {format(day, "d")}
@@ -115,7 +115,7 @@ export function MonthlyView({
                 {hasEvents && (
                   <Badge
                     variant="secondary"
-                    className="h-5 w-5 p-0 text-xs bg-emerald-100 text-emerald-600 border-0 rounded-full flex items-center justify-center"
+                    className="h-5 w-5 p-0 text-xs bg-emerald-100 text-emerald-800 border-0 rounded-full flex items-center justify-center"
                   >
                     {dayEvents.length}
                   </Badge>
@@ -123,8 +123,8 @@ export function MonthlyView({
               </div>
 
               {/* Events */}
-              <div className="space-y-1 flex-1 overflow-hidden">
-                {dayEvents.slice(0, 2).map((event, eventIndex) => (
+              <div className="space-y-1 flex-1 overflow-y-auto">
+                {dayEvents.slice(0, 2).map((event) => (
                   <div
                     key={event.id}
                     className={`
@@ -137,8 +137,8 @@ export function MonthlyView({
                     }}
                     title={`${format(event.startTime, "h:mm a")} - ${event.title}`}
                   >
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">{format(event.startTime, "h:mm")}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold">{format(event.startTime, "h:mm")}</span>
                       <span className="truncate">{event.title}</span>
                     </div>
                   </div>
@@ -146,33 +146,9 @@ export function MonthlyView({
 
                 {/* Show "more events" indicator if there are more than 2 events */}
                 {dayEvents.length > 2 && (
-                  <div className="text-xs text-gray-500 font-medium px-1">+{dayEvents.length - 2} more</div>
+                  <div className="text-xs text-gray-500 font-medium px-1 pt-1">+{dayEvents.length - 2} more</div>
                 )}
               </div>
-
-              {/* Add event button - only show on hover */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute bottom-1 right-1 h-6 w-6 opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white shadow-sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        // Default to 9 AM for new events
-                        const slotTime = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 9, 0)
-                        onSlotClick(slotTime)
-                      }}
-                    >
-                      <Plus className="h-3 w-3 text-emerald-500" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <span>Add event on {format(day, "MMM d")}</span>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
           )
         })}
@@ -180,3 +156,4 @@ export function MonthlyView({
     </div>
   )
 }
+              

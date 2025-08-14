@@ -17,15 +17,15 @@ export default function Reminder({ nextMeeting, currentMeeting, selectedBoardroo
 
   if (!displayMeeting) {
     return (
-      <div className="mt-4 flex justify-center h-54">
-        <Card className="p-3 shadow-xl rounded-2xl w-full max-w-xs bg-gradient-to-br from-gray-50 to-gray-100 border-0 relative flex flex-col items-center">
+      <div className="flex justify-center h-auto">
+        <Card className="p-3 shadow-lg rounded-2xl w-full max-w-xs bg-gradient-to-br from-gray-50 to-gray-100 border-0 relative flex flex-col items-center">
           <span className="inline-flex items-center justify-center bg-gray-100 text-gray-400 rounded-full w-12 h-12 mb-2 shadow">
             <Calendar className="w-7 h-7" />
           </span>
           <CardTitle className="text-base font-semibold text-gray-600 mb-1">
             {isCurrentMeeting ? "No Active Meeting" : "No Upcoming Meetings"}
           </CardTitle>
-          <CardContent className="p-0 text-center">
+          <CardContent className="p-0 text-center h-full">
             <p className="text-gray-500 text-sm">
               {selectedBoardroom.name} is currently available for booking.
             </p>
@@ -84,18 +84,18 @@ export default function Reminder({ nextMeeting, currentMeeting, selectedBoardroo
       }
     } else {
       const timeUntil = Math.round((displayMeeting.startTime.getTime() - now.getTime()) / (1000 * 60))
-      if (timeUntil < 60) {
-        return {
-          label: "Starts in",
-          value: timeUntil > 0 ? `${timeUntil} min` : "Starting now"
-        }
-      } else {
-        const hoursUntil = Math.round(timeUntil / 60)
-        return {
-          label: "Starts in",
-          value: `${hoursUntil}h`
-        }
+      if (timeUntil <= 0) {
+        return { label: "Starts in", value: "Starting now" }
       }
+      if (timeUntil < 60) {
+        return { label: "Starts in", value: `${timeUntil} min` }
+      }
+      const hours = Math.floor(timeUntil / 60)
+      const minutes = timeUntil % 60
+      if (minutes === 0) {
+        return { label: "Starts in", value: `${hours}h` }
+      }
+      return { label: "Starts in", value: `${hours}h ${minutes}m` }
     }
   }
 
@@ -103,7 +103,7 @@ export default function Reminder({ nextMeeting, currentMeeting, selectedBoardroo
 
   return (
     <div className="mt-4 flex justify-center h-auto">
-      <Card className={`p-3 shadow-xl rounded-2xl w-full max-w-xs bg-gradient-to-br ${statusInfo.cardGradient} border-0 relative flex flex-col`}>
+      <Card className={`p-3 shadow-lg rounded-2xl w-full max-w-xs bg-gradient-to-br ${statusInfo.cardGradient} border-0 relative flex flex-col`}>
         {/* Top Row: Time & Status */}
         <div className="flex items-center justify-between mb-2">
           <Badge
@@ -135,7 +135,7 @@ export default function Reminder({ nextMeeting, currentMeeting, selectedBoardroo
               {isCurrentMeeting ? "Current Meeting" : "Next Meeting"} {!isToday && <span className="text-xs text-gray-400 font-normal">- {dateDisplay}</span>}
             </CardTitle>
             <div className="flex items-center gap-2 mt-1">
-              <span className={`font-semibold ${isCurrentMeeting ? "text-blue-600" : "text-emerald-500"} truncate`}>
+              <span className={`font-bold ${isCurrentMeeting ? "text-blue-600" : "text-emerald-500"} truncate`}>
                 {displayMeeting.title}
               </span>
               {displayMeeting.IsConfirmed === false && (
@@ -164,10 +164,11 @@ export default function Reminder({ nextMeeting, currentMeeting, selectedBoardroo
         {/* Time Remaining/Until */}
         {(isCurrentMeeting || (!isCurrentMeeting && timeInfo.value !== "Starting now")) && (
           <Badge
-            className="absolute bottom-2 left-2 px-2 py-1 rounded-full shadow-sm flex items-center gap-1 text-xs font-medium bg-white/90 text-gray-700 border border-gray-200"
+            className="absolute bottom-2 left-2 px-2 py-1 rounded-full shadow-sm flex items-center gap-1.5 text-xs font-medium bg-white/90 text-gray-700 border border-gray-200"
             variant="secondary"
           >
-            {timeInfo.label}: {timeInfo.value}
+            <Timer className="w-3.5 h-3.5 text-gray-500" />
+            {timeInfo.label}: <span className="font-semibold">{timeInfo.value}</span>
           </Badge>
         )}
       </Card>
