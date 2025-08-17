@@ -28,20 +28,20 @@ export default function RoomSelector({ selectedBoardroom, onSelectBoardroom, boa
         className="cursor-pointer"
         onClick={() => setOpen((v) => !v)}
       >
-        <Card className="flex flex-row items-start justify-between px-2 py-1 rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer">
+        <Card className="flex flex-row items-start justify-between px-2 py-1 rounded-full shadow-sm shadow-cyan-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer">
           <div className="flex flex-row gap-2 items-center">
-            <Badge className="rounded-full p-1 bg-sky-400 shadow-md shadow-sky-300/60 ">
+            <Badge className="rounded-full p-1 bg-cyan-400 shadow-md shadow-cyan-300/60 ">
               {selectedBoardroom && getIcon(selectedBoardroom)}
             </Badge>
             <div>
               <div className="font-medium text-sm">{selectedBoardroom?.name}</div>
               <div className="flex items-center gap-1">
-                <span className={`text-xs ${selectedBoardroom?.availability ? "text-emerald-400" : "text-red-600"}`}>
+                <span className={`text-xs ${selectedBoardroom?.availability ? "text-cyan-400" : "text-red-600"}`}>
                   {selectedBoardroom ? getStatus(selectedBoardroom) : ""}
                 </span>
                 <span
                   className={`inline-block w-2 h-2 rounded-full shadow ${selectedBoardroom?.availability
-                    ? "bg-emerald-400 shadow-emerald-300/70"
+                    ? "bg-cyan-400 shadow-cyan-300/70"
                     : "bg-rose-400 shadow-rose-300/70"
                   }`}
                 />
@@ -53,7 +53,7 @@ export default function RoomSelector({ selectedBoardroom, onSelectBoardroom, boa
               <TooltipTrigger asChild>
                 <Badge
                   variant="secondary"
-                  className="mt-2 flex items-center justify-center gap-1 px-1 py-0.5 text-xs bg-emerald-50 text-emerald-400 shadow shadow-sky-100/60"
+                  className="mt-2 flex items-center justify-center gap-1 px-1 py-0.5 text-xs bg-cyan-50 text-cyan-400 shadow shadow-cyan-100/60"
                 >
                   <Calendar className="w-3 h-3" />
                   <span>{selectedBoardroom ? MEETINGS_COUNT[selectedBoardroom.id] ?? 0 : 0}</span>
@@ -70,7 +70,7 @@ export default function RoomSelector({ selectedBoardroom, onSelectBoardroom, boa
         </Card>
       </div>
       {open && (
-        <div className="absolute z-10 mt-2 w-full bg-white border rounded-lg shadow shadow-sky-200/60 ">
+        <div className="absolute z-10 mt-2 w-full bg-white border rounded-lg shadow shadow-cyan-200/60 ">
           {boardrooms
             .filter(room => room.id !== selectedBoardroom?.id)
             .map(room => (
@@ -83,7 +83,7 @@ export default function RoomSelector({ selectedBoardroom, onSelectBoardroom, boa
                 }}
               >
                 <div className="flex flex-row gap-2 items-center">
-                  <Badge className="rounded-full p-1 bg-teal-400 flex items-center justify-center shadow-md shadow-sky-100/60">
+                  <Badge className="rounded-full p-1 bg-teal-400 flex items-center justify-center shadow-md shadow-cyan-100/60">
                     {getIcon(room)}
                   </Badge>
                   <div>
@@ -106,7 +106,7 @@ export default function RoomSelector({ selectedBoardroom, onSelectBoardroom, boa
                     <TooltipTrigger asChild>
                       <Badge
                         variant="secondary"
-                        className="flex items-center justify-center gap-1 px-1 py-0.5 text-xs bg-emerald-50 text-emerald-400 shadow shadow-sky-100/60"
+                        className="flex items-center justify-center gap-1 px-1 py-0.5 text-xs bg-cyan-50 text-cyan-400 shadow shadow-cyan-100/60"
                       >
                         <Calendar className="w-3 h-3" />
                         <span>{MEETINGS_COUNT[room.id] ?? 0}</span>

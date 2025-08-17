@@ -13,7 +13,7 @@ import Notifications from "@/components/sheet/notifications"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -306,7 +306,7 @@ export default function EventCalendar() {
   }
 
   return (
-    <div className="flex flex-col p-4 h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-100 ">
+    <div className="flex flex-col p-4 h-screen bg-gradient-to-br from-cyan-50 via-white to-teal-100 ">
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden py-2 ">
         {/* Left Panel: Mini Calendar */}
@@ -318,30 +318,30 @@ export default function EventCalendar() {
             boardrooms={updatedBoardrooms}
           />
           {/* Mini Calendar */}
-          <Card className="rounded-3xl shadow-lg border-0 bg-gradient-to-br from-zinc-100 via-white to-teal-100 flex-1">
+          <Card className="rounded-3xl shadow-lg border-0 bg-gradient-to-br from-cyan-100 via-white to-teal-100 flex-1">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handlePrevMonth}
-                  className="rounded-full hover:bg-emerald-100 transition "
+                  className="rounded-full hover:bg-cyan-100 transition "
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <h3 className="font-semibold text-emerald-400 tracking-wide text-lg drop-shadow">
+                <h3 className="font-semibold text-cyan-400 tracking-wide text-lg drop-shadow">
                   {format(currentMonth, "MMMM yyyy")}
                 </h3>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleNextMonth}
-                  className="rounded-full hover:bg-emerald-100 transition"
+                  className="rounded-full hover:bg-cyan-100 transition"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="grid grid-cols-7 text-center text-xs font-semibold text-emerald-400 mb-2 uppercase tracking-widest">
+              <div className="grid grid-cols-7 text-center text-xs font-semibold text-cyan-400 mb-2 uppercase tracking-widest">
                 {daysOfWeek.map((day, idx) => (
                   <div key={day.key + idx} className="py-1">
                     {day.label}
@@ -383,9 +383,9 @@ export default function EventCalendar() {
                       transition-all duration-150
                       ${!isCurrentMonth ? "text-muted-foreground opacity-40" : ""}
                       ${isCurrentWeek ? "bg-em-100" : ""}
-                      ${isCurrentDay ? "ring-2 ring-emerald-400 ring-offset-2 text-emerald-700 bg-emerald-100" : ""}
-                      ${isCurrentDay && isSelected ? "ring-2 ring-emerald-600" : ""}
-                      hover:bg-emerald-50
+                      ${isCurrentDay ? "ring-2 ring-cyan-400 ring-offset-2 text-cyan-700 bg-cyan-100" : ""}
+                      ${isCurrentDay && isSelected ? "ring-2 ring-cyan-600" : ""}
+                      hover:bg-cyan-50
                     `}
                       onClick={() => {
                         setSelectedDate(day)
@@ -416,32 +416,32 @@ export default function EventCalendar() {
               <div className="flex flex-col p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Badge className="rounded-full p-0 w-10 h-10 flex items-center justify-center  text-muted bg-emerald-400">
+                    <Badge className="rounded-full p-0 w-10 h-10 flex items-center justify-center  text-muted bg-cyan-400">
                       <CalendarDays className="w-7 h-7" />
                     </Badge>
-                    <h2 className="text-2xl font-bold text-muted-foreground">
+                    <h2 className="text-2xl font-bold text-cyan-700">
                       {format(selectedDate, "MMMM dd, yyyy")}
                     </h2>
                   </div>
 
                   <div className="flex-1 flex justify-center">
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-xs text-emerald-400">
-                      <TabsList className="w-full flex justify-center border border-gray-200 rounded-full p-1 text-emerald-400">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-xs text-cyan-400 ">
+                      <TabsList className="w-full flex justify-center border border-gray-200 rounded-full p-1 text-cyan-400">
                         <TabsTrigger
                           value="day"
-                          className="flex-1 rounded-full px-4 py-1 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-400 data-[state=inactive]:bg-white data-[state=inactive]:text-zinc-400 transition"
+                          className="hover: cursor-pointer flex-1 rounded-full px-4 py-1 data-[state=active]:bg-cyan-50 data-[state=active]:text-cyan-400 data-[state=inactive]:bg-white data-[state=inactive]:text-cyan-700 transition"
                         >
                           Day
                         </TabsTrigger>
                         <TabsTrigger
                           value="week"
-                          className="flex-1 rounded-full px-4 py-1 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-400 data-[state=inactive]:bg-white data-[state=inactive]:text-zinc-400 transition"
+                          className="hover: cursor-pointer flex-1 rounded-full px-4 py-1 data-[state=active]:bg-cyan-50 data-[state=active]:text-cyan-400 data-[state=inactive]:bg-white data-[state=inactive]:text-cyan-700 transition"
                         >
                           Week
                         </TabsTrigger>
                         <TabsTrigger
                           value="month"
-                          className="flex-1 rounded-full px-4 py-1 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-400 data-[state=inactive]:bg-white data-[state=inactive]:text-zinc-400 transition"
+                          className="hover: cursor-pointer flex-1 rounded-full px-4 py-1 data-[state=active]:bg-cyan-50 data-[state=active]:text-cyan-400 data-[state=inactive]:bg-white data-[state=inactive]:text-cyna-700 transition"
                         >
                           Month
                         </TabsTrigger>
@@ -452,14 +452,14 @@ export default function EventCalendar() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className=" rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer bg-transparent"
+                      className=" rounded-full shadow-sm shadow-cyan-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer bg-transparent"
                       onClick={() => setSelectedDate(subMonths(selectedDate, 1))}
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="outline"
-                      className=" rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer rounded-full px-4 bg-transparent"
+                      className=" rounded-full shadow-sm shadow-cyan-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer rounded-full px-4 bg-transparent"
                       onClick={handleTodayClick}
                     >
                       Today
@@ -467,7 +467,7 @@ export default function EventCalendar() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer bg-transparent"
+                      className="rounded-full shadow-sm shadow-cyan-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer bg-transparent"
                       onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
                     >
                       <ChevronRight className="h-4 w-4 " />
@@ -477,7 +477,7 @@ export default function EventCalendar() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="rounded-full shadow-sm shadow-sky-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer relative bg-transparent"
+                      className="rounded-full shadow-sm shadow-cyan-200/60 transition-shadow transition-transform duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer relative bg-transparent"
                       aria-label="Meeting Confirmations"
                       onClick={() => setConfirmationSheetOpen(true)}
                     >
@@ -594,11 +594,11 @@ export default function EventCalendar() {
               onBookingSuccess={handleBookingSuccess}
             />
           </div>
-          <DialogFooter>
+          {/* <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Close
             </Button>
-          </DialogFooter>
+          </DialogFooter> */}
         </DialogContent>
       </Dialog>
 
@@ -619,11 +619,11 @@ export default function EventCalendar() {
               />
             )}
           </div>
-          <DialogFooter>
+          {/* <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
               Close
             </Button>
-          </DialogFooter>
+          </DialogFooter> */}
         </DialogContent>
       </Dialog>
     </div>

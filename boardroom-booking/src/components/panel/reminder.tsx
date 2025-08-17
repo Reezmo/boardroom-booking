@@ -45,10 +45,10 @@ export default function Reminder({ nextMeeting, currentMeeting, selectedBoardroo
       return {
         text: "Meeting in Progress",
         icon: <Play className="w-3 h-3" />,
-        className: "bg-blue-100 text-blue-700 border-blue-200",
-        cardGradient: "from-blue-50 to-indigo-50",
-        iconBg: "bg-blue-50 text-blue-400",
-        titleColor: "text-blue-800"
+        className: "bg-cyan-100 text-cyan-700 border-cyan-200",
+        cardGradient: "from-cyan-50 to-indigo-50",
+        iconBg: "bg-cyan-50 text-cyan-400",
+        titleColor: "text-cyan-800"
       }
     } else if (displayMeeting.IsConfirmed === false) {
       return {
@@ -63,10 +63,10 @@ export default function Reminder({ nextMeeting, currentMeeting, selectedBoardroo
       return {
         text: "Confirmed",
         icon: <CheckCircle className="w-3 h-3" />,
-        className: "bg-emerald-100 text-emerald-700 border-emerald-200",
-        cardGradient: "from-emerald-50 to-teal-50",
-        iconBg: "bg-emerald-50 text-emerald-400",
-        titleColor: "text-emerald-800"
+        className: "bg-cyan-100 text-cyan-700 border-cyan-200",
+        cardGradient: "from-cyan-50 to-teal-50",
+        iconBg: "bg-cyan-50 text-cyan-400",
+        titleColor: "text-cyan-800"
       }
     }
   }
@@ -135,7 +135,7 @@ export default function Reminder({ nextMeeting, currentMeeting, selectedBoardroo
               {isCurrentMeeting ? "Current Meeting" : "Next Meeting"} {!isToday && <span className="text-xs text-gray-400 font-normal">- {dateDisplay}</span>}
             </CardTitle>
             <div className="flex items-center gap-2 mt-1">
-              <span className={`font-bold ${isCurrentMeeting ? "text-blue-600" : "text-emerald-500"} truncate`}>
+              <span className={`font-bold ${isCurrentMeeting ? "text-cyan-600" : "text-cyan-500"} truncate`}>
                 {displayMeeting.title}
               </span>
               {displayMeeting.IsConfirmed === false && (

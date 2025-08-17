@@ -1,13 +1,12 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
-import { Sheet, SheetContent, SheetTitle } from '../ui/sheet'
-import { Button } from '../ui/button';
-import { Check, X, Clock, AlertTriangle, Calendar } from 'lucide-react';
-import { Badge } from '../ui/badge';
-import { Separator } from '../ui/separator';
-import { format } from 'date-fns';
 import type { IEvent } from '@/models/IEvent';
+import { format } from 'date-fns';
+import { AlertTriangle, Calendar, Check, Clock, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Sheet, SheetContent, SheetTitle } from '../ui/sheet';
 
 interface MeetingConfirmationProps {
   open: boolean;
@@ -92,109 +91,119 @@ export default function MeetingConfirmation({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-96">
-        <SheetTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Meeting Confirmations
-          {pendingEvents.length > 0 && (
-            <Badge variant="destructive" className="ml-auto">
-              {pendingEvents.length}
-            </Badge>
-          )}
-        </SheetTitle>
+      <SheetContent side="right" className="w-full sm:w-[400px] bg-gray-50 p-0">
+        <div className="p-6">
+          <SheetTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Meeting Confirmations
+            {pendingEvents.length > 0 && (
+              <Badge variant="destructive" className="ml-auto animate-pulse">
+                {pendingEvents.length}
+              </Badge>
+            )}
+          </SheetTitle>
+        </div>
         
-        <div className="mt-6 space-y-4">
+        <div className="mt-2 space-y-4 px-6 pb-6 h-[calc(100vh-80px)] overflow-y-auto">
           {pendingEvents.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Check className="h-12 w-12 mx-auto mb-4 opacity-50 text-green-500" />
-              <p className="text-lg font-medium mb-2">All Meetings Confirmed</p>
-              <p className="text-sm">No pending confirmations at this time.</p>
+            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+              <Check className="h-16 w-16 mx-auto mb-4 text-green-500/80" />
+              <p className="text-lg font-semibold mb-2 text-gray-800">All Meetings Confirmed</p>
+              <p className="text-sm">You have no pending meeting confirmations.</p>
             </div>
           ) : (
             <>
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                <div className="flex items-center gap-2 text-amber-800">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span className="text-sm font-medium">
-                    {pendingEvents.length} meeting{pendingEvents.length > 1 ? 's' : ''} require confirmation
-                  </span>
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4" role="alert">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="h-5 w-5" />
+                  <div>
+                    <p className="font-bold text-sm">
+                      {pendingEvents.length} meeting{pendingEvents.length > 1 ? 's' : ''} require confirmation
+                    </p>
+                    <p className="text-xs mt-1">
+                      Meetings will be automatically cancelled if not confirmed.
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-amber-700 mt-1">
-                  Meetings will be automatically cancelled if not confirmed within 20 seconds.
-                </p>
               </div>
 
               {pendingEvents.map((event) => (
-                <div key={event.id} className="border rounded-lg p-4 space-y-3 bg-white shadow-sm">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${event.color.replace('text-', 'bg-').split(' ')[0]}`} />
-                      <span className="font-medium text-sm">Confirmation Required</span>
+                <div key={event.id} className="border rounded-xl bg-white shadow-sm overflow-hidden transition-all hover:shadow-md">
+                  <div className="p-4 space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${event.color.replace('text-', 'bg-').split(' ')[0]}`} />
+                        <h4 className="font-semibold text-gray-900">{event.title}</h4>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs font-medium">
+                        <Clock className="h-3.5 w-3.5 text-red-500" />
+                        <span className={`font-mono font-bold text-base ${
+                          (timers[event.id] || 0) <= 5 ? 'text-red-600 animate-pulse' : 'text-gray-700'
+                        }`}>
+                          {timers[event.id] || 0}s
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 text-xs">
-                      <Clock className="h-3 w-3 text-red-500" />
-                      <span className={`font-mono font-bold ${
-                        (timers[event.id] || 0) <= 5 ? 'text-red-600' : 'text-amber-600'
-                      }`}>
-                        {timers[event.id] || 0}s
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-gray-900">{event.title}</h4>
+                    
                     {event.description && (
                       <p className="text-sm text-gray-600">{event.description}</p>
                     )}
-                    <div className="grid grid-cols-2 gap-4 text-xs text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <span>📍</span>
+
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400">📍</span>
                         <span>{event.boardroom.name}</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <span>🕒</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400">🕒</span>
                         <span>{format(event.startTime, 'MMM dd, HH:mm')}</span>
                       </div>
                       {event.attendees && (
-                        <div className="flex items-center gap-1">
-                          <span>👥</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-400">👥</span>
                           <span>{event.attendees} attendees</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-1">
-                        <span>⏱️</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400">⏱️</span>
                         <span>
                           {Math.round((event.endTime.getTime() - event.startTime.getTime()) / (1000 * 60))} min
                         </span>
                       </div>
                     </div>
                     {event.organizer && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 pt-2 border-t">
                         <span className="font-medium">Organizer:</span> {event.organizer.fullName}
                       </div>
                     )}
                   </div>
                   
-                  <Separator />
-                  
-                  <div className="flex gap-2">
+                  <div className="bg-gray-50 px-4 py-3 flex gap-3">
                     <Button
                       size="sm"
                       onClick={() => handleConfirm(event.id)}
-                      className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                     >
-                      <Check className="h-4 w-4 mr-1" />
-                      Confirm Meeting
+                      <Check className="h-4 w-4 mr-2" />
+                      Confirm
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleCancel(event.id)}
-                      className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                      className="flex-1"
                     >
-                      <X className="h-4 w-4 mr-1" />
+                      <X className="h-4 w-4 mr-2" />
                       Cancel
                     </Button>
+                  </div>
+                  <div className="h-1.5 bg-gray-200">
+                    <div 
+                      className={`h-full transition-all duration-1000 linear ${
+                        (timers[event.id] || 0) <= 5 ? 'bg-red-500' : 'bg-yellow-400'
+                      }`}
+                      style={{ width: `${((timers[event.id] || 0) / 20) * 100}%` }}
+                    />
                   </div>
                 </div>
               ))}

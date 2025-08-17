@@ -94,7 +94,7 @@ export function MonthlyView({
               className={`
                 relative bg-white rounded-lg p-2 cursor-pointer transition-colors hover:bg-gray-100 flex flex-col min-h-0
                 ${!isCurrentMonth ? "bg-gray-50 text-gray-400" : ""}
-                ${isSelected && isCurrentMonth ? "bg-blue-50 ring-2 ring-blue-200" : ""}
+                ${isSelected && isCurrentMonth ? "bg-cyan-50 ring-2 ring-cyan-200" : ""}
               `}
               onClick={() => onDayClick(day)}
             >
@@ -104,8 +104,8 @@ export function MonthlyView({
                   className={`
                     text-sm font-medium flex items-center justify-center h-7 w-7 rounded-full
                     ${!isCurrentMonth ? "text-gray-400" : "text-gray-600"}
-                    ${isCurrentDay ? "bg-emerald-500 text-white font-semibold" : ""}
-                    ${isSelected && !isCurrentDay ? "bg-blue-500 text-white" : ""}
+                    ${isCurrentDay ? "bg-cyan-500 text-white font-semibold" : ""}
+                    ${isSelected && !isCurrentDay ? "bg-cyan-500 text-white" : ""}
                   `}
                 >
                   {format(day, "d")}
@@ -115,7 +115,7 @@ export function MonthlyView({
                 {hasEvents && (
                   <Badge
                     variant="secondary"
-                    className="h-5 w-5 p-0 text-xs bg-emerald-100 text-emerald-800 border-0 rounded-full flex items-center justify-center"
+                    className="h-5 w-5 p-0 text-xs bg-cyan-100 text-cyan-800 border-0 rounded-full flex items-center justify-center"
                   >
                     {dayEvents.length}
                   </Badge>

@@ -2,10 +2,10 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import type { IBoardroom } from "@/models/IBoardroom"
+import type { IEvent } from "@/models/IEvent"
 import { format, isSameDay, isToday } from "date-fns"
 import { Plus } from "lucide-react"
-import type { IEvent } from "@/models/IEvent"
-import type { IBoardroom } from "@/models/IBoardroom"
 
 const HOUR_HEIGHT = 60 // pixels per hour
 const SLOT_HEIGHT = 30 // pixels per 30-min slot
@@ -48,13 +48,13 @@ export function DailyView({
             return (
               <div
                 key={i}
-                className={`flex flex-col items-center justify-center flex-1 rounded-2xl px-0 py-2 cursor-pointer transition
+                className={`flex flex-col items-center justify-center flex-1 rounded-2xl px-0 py-2 cursor-pointer transition-all hover:shadow-md
                           ${
                             isCurrentDay
-                              ? "bg-emerald-50 text-emerald-400 font-bold shadow rounded-2xl"
+                              ? "bg-cyan-50 text-cyan-400 font-bold shadow rounded-2xl"
                               : isSelected
-                                ? "bg-teal-100 text-emerald-400 font-bold shadow rounded-2xl"
-                                : "bg-white text-zinc-400 font-bold shadow rounded-2xl"
+                                ? "bg-teal-100 text-cyan-400 font-bold shadow rounded-2xl"
+                                : "bg-white text-cyan-700 font-bold shadow rounded-2xl"
                           }
                           border border-gray-200`}
                 style={{ minWidth: 0 }}
@@ -70,13 +70,13 @@ export function DailyView({
       <ScrollArea className="h-[calc(100vh-285px)] rounded-3xl">
         <div className="grid grid-cols-[60px_1fr] h-full">
           {/* Time Labels */}
-          <div className="sticky left-0 z-10 pr-2 text-right text-xs text-muted-foreground pt-[30px] select-none">
+          <div className="sticky left-0 z-10 pr-2 text-right text-xs text-cyan-700 pt-[30px] select-none">
             {timeSlots.map((slot, idx) => (
               <div
                 key={idx}
                 style={{ height: SLOT_HEIGHT, lineHeight: `${SLOT_HEIGHT}px` }}
                 className={`flex items-start justify-end ${
-                  slot.minute === 0 && slot.hour % 6 === 0 ? "font-bold text-gray-700" : ""
+                  slot.minute === 0 && slot.hour % 6 === 0 ? "font-bold text-cyan-700" : ""
                 }`}
               >
                 {/* Only show label on the hour */}
@@ -205,7 +205,7 @@ export function DailyView({
                           onClick={() => onSlotClick(slotDate)}
                         >
                           <span
-                            className="hidden group-hover:flex items-center justify-center w-full h-full border-2 border-dotted border-emerald-200 rounded-lg bg-white/70 transition"
+                            className="hidden group-hover:flex items-center justify-center w-full h-full border-2 border-dotted border-cyan-200 rounded-lg bg-white/70 transition"
                             style={{
                               position: "absolute",
                               left: 0,
@@ -215,7 +215,7 @@ export function DailyView({
                               zIndex: 4,
                             }}
                           >
-                            <Plus className="w-5 h-5 text-emerald-400 opacity-70" />
+                            <Plus className="w-5 h-5 text-cyan-400 opacity-70" />
                           </span>
                         </button>
                       </TooltipTrigger>

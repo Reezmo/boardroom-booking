@@ -12,16 +12,16 @@ const Toaster = ({ ...props }: ToasterProps) => {
       className="toaster group"
       toastOptions={{
         classNames: {
-          toast: "group toast group-[.toaster]:bg-white group-[.toaster]:text-gray-800 group-[.toaster]:border-emerald-200 group-[.toaster]:shadow-lg group-[.toaster]:shadow-emerald-100/50 group-[.toaster]:rounded-xl",
+          toast: "group toast group-[.toaster]:bg-white group-[.toaster]:text-gray-800 group-[.toaster]:border-cyan-200 group-[.toaster]:shadow-lg group-[.toaster]:shadow-cyan-100/50 group-[.toaster]:rounded-xl",
           description: "group-[.toast]:text-gray-600",
-          actionButton: "group-[.toast]:bg-emerald-500 group-[.toast]:text-white group-[.toast]:hover:bg-emerald-600 group-[.toast]:rounded-lg group-[.toast]:font-medium",
+          actionButton: "group-[.toast]:bg-cyan-500 group-[.toast]:text-white group-[.toast]:hover:bg-cyan-600 group-[.toast]:rounded-lg group-[.toast]:font-medium",
           cancelButton: "group-[.toast]:bg-gray-100 group-[.toast]:text-gray-700 group-[.toast]:hover:bg-gray-200 group-[.toast]:rounded-lg",
-          closeButton: "group-[.toast]:bg-emerald-50 group-[.toast]:text-emerald-600 group-[.toast]:border-emerald-200 group-[.toast]:hover:bg-emerald-100",
+          closeButton: "group-[.toast]:bg-cyan-50 group-[.toast]:text-cyan-600 group-[.toast]:border-cyan-200 group-[.toast]:hover:bg-cyan-100",
           title: "group-[.toast]:text-gray-900 group-[.toast]:font-semibold",
-          success: "group-[.toast]:bg-gradient-to-r group-[.toast]:from-emerald-50 group-[.toast]:to-teal-50 group-[.toast]:border-emerald-300 group-[.toast]:text-emerald-800",
+          success: "group-[.toast]:bg-gradient-to-r group-[.toast]:from-cyan-50 group-[.toast]:to-teal-50 group-[.toast]:border-cyan-300 group-[.toast]:text-cyan-800",
           error: "group-[.toast]:bg-gradient-to-r group-[.toast]:from-red-50 group-[.toast]:to-rose-50 group-[.toast]:border-red-300 group-[.toast]:text-red-800",
           warning: "group-[.toast]:bg-gradient-to-r group-[.toast]:from-amber-50 group-[.toast]:to-yellow-50 group-[.toast]:border-amber-300 group-[.toast]:text-amber-800",
-          info: "group-[.toast]:bg-gradient-to-r group-[.toast]:from-blue-50 group-[.toast]:to-sky-50 group-[.toast]:border-blue-300 group-[.toast]:text-blue-800",
+          info: "group-[.toast]:bg-gradient-to-r group-[.toast]:from-cyan-50 group-[.toast]:to-cyan-50 group-[.toast]:border-cyan-300 group-[.toast]:text-cyan-800",
           loading: "group-[.toast]:bg-gradient-to-r group-[.toast]:from-gray-50 group-[.toast]:to-slate-50 group-[.toast]:border-gray-300 group-[.toast]:text-gray-800",
         },
       }}

@@ -53,7 +53,7 @@ export function WeeklyView({ selectedDate, selectedBoardroom, events, onEventCli
               key={index}
               className={`p-2 text-center border-r border-gray-100 last:border-r-0 ${
                 isCurrentDay
-                  ? "bg-emerald-50 text-emerald-600 font-semibold"
+                  ? "bg-cyan-50 text-cyan-600 font-semibold"
                   : isSelected
                     ? "bg-teal-50 text-teal-600 font-semibold"
                     : "text-gray-600"
@@ -215,7 +215,7 @@ export function WeeklyView({ selectedDate, selectedBoardroom, events, onEventCli
                               onClick={() => onSlotClick(slotDate)}
                             >
                               <span
-                                className="hidden group-hover:flex items-center justify-center w-full h-full border border-dotted border-emerald-200 rounded bg-white/70 transition"
+                                className="hidden group-hover:flex items-center justify-center w-full h-full border border-dotted border-cyan-200 rounded bg-white/70 transition"
                                 style={{
                                   position: "absolute",
                                   left: 0,
@@ -225,7 +225,7 @@ export function WeeklyView({ selectedDate, selectedBoardroom, events, onEventCli
                                   zIndex: 4,
                                 }}
                               >
-                                <Plus className="w-3 h-3 text-emerald-400 opacity-70" />
+                                <Plus className="w-3 h-3 text-cyan-400 opacity-70" />
                               </span>
                             </button>
                           </TooltipTrigger>

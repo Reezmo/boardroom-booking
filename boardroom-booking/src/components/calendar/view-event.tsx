@@ -147,7 +147,7 @@ export function ViewEvent({ event, open, onOpenChange, onEdit, onDelete }: ViewE
                 onEdit(event)
                 onOpenChange(false)
               }}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="bg-cyan-600 hover:bg-cyan-700 text-white"
             >
               <Edit className="w-4 h-4 mr-2" />
               Edit

@@ -7,7 +7,7 @@ import type { IUser } from "@/models/IUser"
 export const BOARDROOMS: IBoardroom[] = [
   {
     id: "br-1",
-    name: "Emerald Room",
+    name: "cyan Room",
     availability: true,
     capacity: 10,
     isConfirmed: true, 
@@ -59,7 +59,7 @@ export const DUMMY_EVENTS: IEvent[] = [
     id: "1",
     title: "Breakfast",
     description: "",
-    color: "bg-blue-100 text-blue-800",
+    color: "bg-cyan-100 text-cyan-800",
     startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 6, 0),
     endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 7, 0),
     boardroom: BOARDROOMS[0],
@@ -117,7 +117,7 @@ export const DUMMY_EVENTS: IEvent[] = [
     id: "6",
     title: "Budget Planning",
     description: "Q2 budget review and planning session",
-    color: "bg-emerald-100 text-emerald-800",
+    color: "bg-cyan-100 text-cyan-800",
     startTime: getNextSlot(2, 0), // Next available :00 slot, 2+ hours from now
     endTime: getNextSlot(3, 0), // 1 hour duration
     boardroom: BOARDROOMS[0],
@@ -130,7 +130,7 @@ export const DUMMY_EVENTS: IEvent[] = [
     id: "7",
     title: "Client Presentation",
     description: "Present new product features to key client",
-    color: "bg-blue-100 text-blue-800",
+    color: "bg-cyan-100 text-cyan-800",
     startTime: getNextSlot(4, 30), // Next available :30 slot, 4+ hours from now
     endTime: getNextSlot(5, 30), // 1 hour duration
     boardroom: BOARDROOMS[1],

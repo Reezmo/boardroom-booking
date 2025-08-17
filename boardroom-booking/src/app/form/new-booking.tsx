@@ -5,12 +5,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { DUMMY_EVENTS } from "@/mock/mockData"
+import type { IEvent } from "@/models/IEvent"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { format } from "date-fns"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { format } from "date-fns"
-import type { IEvent } from "@/models/IEvent"
 
 export interface BookingFormProps {
   slotTime: Date | null
@@ -98,7 +98,7 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
       startTime: start,
       endTime: end,
       boardroom,
-      color: existingEvent?.color || "bg-emerald-200",
+      color: existingEvent?.color || "bg-cyan-200",
     }
 
     if (onBookingSuccess) {
@@ -118,7 +118,7 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
         {boardroom && (
           <div className="mb-2">
             <div className="font-medium">
-              Boardroom: <span className="text-emerald-700">{boardroom.name}</span>
+              Boardroom: <span className="text-cyan-700">{boardroom.name}</span>
             </div>
             <div className="text-sm text-gray-500">Capacity: {boardroom.capacity}</div>
           </div>
@@ -197,7 +197,7 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
         {error && <div className="text-red-600">{error}</div>}
         {success && <div className="text-green-600">{success}</div>}
         <div className="flex gap-2">
-          <Button type="submit" className="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600 flex-1">
+          <Button type="submit" className="px-4 py-2 roundedflex-1">
             {isEditing ? "Update" : "Book"}
           </Button>
           {isEditing && onEventDelete && (

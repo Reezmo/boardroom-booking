@@ -1,19 +1,19 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, Settings, LogOut, Calendar, Building } from 'lucide-react'
-import type { IUser } from "../../models/IUser" // Adjusted path
-import { DUMMY_USER } from "../../mock/mockData" // Adjusted path
+import { Building, Calendar, LogOut, Settings, User } from 'lucide-react'
+import { useState } from "react"
+import { DUMMY_USER } from "../../mock/mockData"; // Adjusted path
+import type { IUser } from "../../models/IUser"; // Adjusted path
 
 export default function ProfileMenu() {
   const [user] = useState<IUser>(DUMMY_USER)
@@ -51,7 +51,7 @@ export default function ProfileMenu() {
           <Button
             variant="outline"
             size="icon"
-            className="rounded-full shadow-sm shadow-sky-200/60 transition duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer bg-transparent"
+            className="rounded-full shadow-sm shadow-cyan-200/60 transition duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer bg-transparent"
             aria-label="Profile"
           >
             <Avatar>
