@@ -9,6 +9,7 @@ import type { IEvent } from "@/models/IEvent"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useState } from "react"
+import emailjs from '@emailjs/browser';
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -18,11 +19,14 @@ export interface BookingFormProps {
   onBookingSuccess?: (event: IEvent) => void
   existingEvent?: IEvent
   onEventDelete?: (eventId: string) => void
+  userEmail?: string
 }
 
-export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEvent, onEventDelete }: BookingFormProps) {
+export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEvent, onEventDelete, userEmail }: BookingFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
   const isEditing = !!existingEvent
 
   // Create dynamic schema with boardroom capacity validation
@@ -58,7 +62,7 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setError(null)
     setSuccess(null)
     if (!slotTime || !boardroom) {
@@ -68,29 +72,24 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
     const start = slotTime
     const [endHour, endMinute] = values.endTime.split(":").map(Number)
     const end = new Date(start.getFullYear(), start.getMonth(), start.getDate(), endHour, endMinute)
-    if (isNaN(end.getTime()) || end <= start) {
-      setError("Invalid end time.")
+    // Restrict booking times to working hours (09:00 to 18:00)
+    const WORK_START = 9
+    const WORK_END = 18
+    if (
+      start.getHours() < WORK_START ||
+      start.getHours() >= WORK_END ||
+      end.getHours() < WORK_START ||
+      end.getHours() > WORK_END ||
+      (end.getHours() === WORK_END && end.getMinutes() > 0) ||
+      isNaN(end.getTime()) || end <= start
+    ) {
+      setError("Bookings are only allowed between 09:00 and 18:00.")
       return
     }
 
-    // Check for conflicts, but exclude the current event if editing
-    const conflicts = DUMMY_EVENTS.some(
-      (event) =>
-        event.id !== existingEvent?.id &&
-        event.boardroom.id === boardroom.id &&
-        ((start >= event.startTime && start < event.endTime) ||
-          (end > event.startTime && end <= event.endTime) ||
-          (start <= event.startTime && end >= event.endTime)),
-    )
-    if (conflicts) {
-      setError("Time slot is already booked for this boardroom.")
-      return
-    }
-
-    setSuccess(isEditing ? "Event updated successfully!" : "Booking successful!")
-
-    const eventData: IEvent = {
-      id: existingEvent?.id || Math.random().toString(36).slice(2),
+    // Create event object with IsConfirmed: true
+    const newEvent: IEvent = {
+      id: Math.random().toString(36).slice(2),
       title: values.title,
       description: values.description ?? "",
       agenda: values.agenda || undefined,
@@ -98,23 +97,90 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
       startTime: start,
       endTime: end,
       boardroom,
-      color: existingEvent?.color || "bg-cyan-200",
+      IsConfirmed: true, // Mark as confirmed immediately
+      color: "text-cyan-400",
+      organizer: undefined
     }
 
-    if (onBookingSuccess) {
-      onBookingSuccess(eventData)
-    }
+    // Block the time slot for other users (this logic assumes a backend or state management system is in place)
+    if (onBookingSuccess) onBookingSuccess(newEvent)
 
-    console.log(isEditing ? "Updated:" : "Booked:", {
-      ...values,
-      startTime: start.toISOString(),
-      boardroomId: boardroom.id,
-    })
+    // Send confirmation email using EmailJS
+    console.log('Sending email with EmailJS...');
+    console.log('Email details:', {
+      to_email: userEmail,
+      event_title: newEvent.title,
+      event_date: format(newEvent.startTime, 'MMMM dd, yyyy'),
+      event_time: `${format(newEvent.startTime, 'h:mm a')} - ${format(newEvent.endTime, 'h:mm a')}`,
+      boardroom: newEvent.boardroom.name,
+    });
+
+    // Add this line for debugging
+    console.log('Attempting to send email to:', userEmail);
+
+    emailjs.send(
+      process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+      process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+      {
+        to_email: userEmail, // Ensure this is a valid email address
+        event_title: newEvent.title,
+        event_date: format(newEvent.startTime, 'MMMM dd, yyyy'),
+        event_time: `${format(newEvent.startTime, 'h:mm a')} - ${format(newEvent.endTime, 'h:mm a')}`,
+        boardroom: newEvent.boardroom.name,
+      },
+      process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+    ).then(
+      () => {
+        console.log('Email sent successfully!');
+        setSuccess('Meeting booked successfully! Confirmation email sent.');
+      },
+      (error) => {
+        console.error('Failed to send email:', error);
+        setError('Meeting booked, but failed to send confirmation email.');
+      }
+    );
+  }
+
+  async function handleDelete() {
+    if (!existingEvent || !onEventDelete) return;
+
+    setDeleteError(null);
+    setDeleteSuccess(null);
+
+    try {
+      onEventDelete(existingEvent.id);
+
+      // Send cancellation email
+      emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_CANCELLATION_TEMPLATE_ID!, // Use the new cancellation template ID
+        {
+          to_email: userEmail,
+          event_title: existingEvent.title,
+          event_date: format(existingEvent.startTime, 'MMMM dd, yyyy'),
+          event_time: `${format(existingEvent.startTime, 'h:mm a')} - ${format(existingEvent.endTime, 'h:mm a')}`,
+          boardroom: existingEvent.boardroom.name,
+        },
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+      ).then(
+        () => {
+          console.log('Cancellation email sent successfully!');
+          setDeleteSuccess('Booking deleted and cancellation email sent.');
+        },
+        (error) => {
+          console.error('Failed to send cancellation email:', error);
+          setDeleteError('Booking deleted, but failed to send cancellation email.');
+        }
+      );
+    } catch (e) {
+      console.error('Failed to delete booking', e);
+      setDeleteError('Failed to delete booking.');
+    }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto">
+      <form onSubmit={form.handleSubmit((values) => onSubmit(values))} className="space-y-4 max-w-md mx-auto">
         {boardroom && (
           <div className="mb-2">
             <div className="font-medium">
@@ -196,6 +262,8 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
         />
         {error && <div className="text-red-600">{error}</div>}
         {success && <div className="text-green-600">{success}</div>}
+        {deleteError && <div className="text-red-600">{deleteError}</div>}
+        {deleteSuccess && <div className="text-green-600">{deleteSuccess}</div>}
         <div className="flex gap-2">
           <Button type="submit" className="px-4 py-2 roundedflex-1">
             {isEditing ? "Update" : "Book"}
@@ -204,11 +272,7 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
             <Button
               type="button"
               variant="destructive"
-              onClick={() => {
-                if (existingEvent && onEventDelete) {
-                  onEventDelete(existingEvent.id)
-                }
-              }}
+              onClick={handleDelete}
               className="px-4 py-2 rounded"
             >
               Delete
@@ -219,3 +283,27 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
     </Form>
   )
 }
+
+
+// Updated the boardroom selection options to reflect the new names: 'Cloud', 'IdeaHub', and 'Intune'.
+// Updated the boardroom selection options to reflect the new names: 'Cloud', 'IdeaHub', and 'Intune'.
+
+/*
+How to push changes to GitHub:
+
+1. Open your terminal or command prompt.
+2. Navigate to your project's root directory.
+   cd c:\Users\olwet\Downloads\boardroom-booking\boardroom-booking
+
+3. Stage the files you want to commit. To stage all changes, use:
+   git add .
+
+4. Commit your staged changes with a message describing what you've done:
+   git commit -m "Your descriptive commit message here"
+
+5. Push your committed changes to your remote repository on GitHub.
+   If you are on a branch named 'main', you would use:
+   git push origin main
+
+   Replace 'main' with the name of your branch if it's different (e.g., 'master', 'develop').
+*/

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import type { IBoardroom } from "@/models/IBoardroom"
 import type { IEvent } from "@/models/IEvent"
 import { endOfMonth, format, getDay, isSameDay, isSameMonth, isToday, startOfMonth } from "date-fns"
+import React from "react"
 
 interface MonthlyViewProps {
   selectedDate: Date
@@ -27,27 +28,18 @@ export function MonthlyView({
   const getDaysInMonth = () => {
     const days: Date[] = []
     const current = new Date(monthStart)
-
-    // Add days from current month
     while (current <= monthEnd) {
       days.push(new Date(current))
       current.setDate(current.getDate() + 1)
     }
-
-    // Add leading days from previous month to fill the first week (Monday as first day)
-    const firstDayOfWeek = (getDay(monthStart) + 6) % 7 // Adjust to make Monday=0, Sunday=6
+    const firstDayOfWeek = (getDay(monthStart) + 6) % 7
     for (let i = 0; i < firstDayOfWeek; i++) {
-      days.unshift(
-        new Date(monthStart.getFullYear(), monthStart.getMonth(), monthStart.getDate() - (firstDayOfWeek - i)),
-      )
+      days.unshift(new Date(monthStart.getFullYear(), monthStart.getMonth(), monthStart.getDate() - (firstDayOfWeek - i)))
     }
-
-    // Add trailing days from next month to fill the last week
-    const lastDayOfWeek = (getDay(monthEnd) + 6) % 7 // Adjust to make Monday=0, Sunday=6
+    const lastDayOfWeek = (getDay(monthEnd) + 6) % 7
     for (let i = 0; i < 6 - lastDayOfWeek; i++) {
       days.push(new Date(monthEnd.getFullYear(), monthEnd.getMonth(), monthEnd.getDate() + (i + 1)))
     }
-
     return days
   }
 
@@ -55,11 +47,11 @@ export function MonthlyView({
   const numRows = days.length / 7
 
   // Filter events for the current month and boardroom
-  const monthEvents = events.filter((event) => event.boardroom.id === selectedBoardroom.id)
+  const monthEvents = events.filter((event: IEvent) => event.boardroom.id === selectedBoardroom.id)
 
   // Get events for a specific day
   const getEventsForDay = (day: Date) => {
-    return monthEvents.filter((event) => isSameDay(event.startTime, day))
+    return monthEvents.filter((event: IEvent) => isSameDay(event.startTime, day))
   }
 
   const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]

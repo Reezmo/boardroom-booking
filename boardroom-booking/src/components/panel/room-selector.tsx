@@ -5,16 +5,17 @@ import { Card } from "@/components/ui/card"
 import { Calendar, DoorClosed, DoorOpen } from 'lucide-react'
 // Add ShadCN Tooltip
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { BOARDROOMS, MEETINGS_COUNT } from "@/mock/mockData"
+import { BOARDROOMS } from "@/mock/mockData"
 import { IBoardroom } from "@/models/IBoardroom"
 
 export interface RoomSelectorProps {
   selectedBoardroom: IBoardroom | null
   onSelectBoardroom: (room: IBoardroom) => void
   boardrooms?: IBoardroom[]
+  meetingsCount?: Record<string, number>
 }
 
-export default function RoomSelector({ selectedBoardroom, onSelectBoardroom, boardrooms = BOARDROOMS }: RoomSelectorProps) {
+export default function RoomSelector({ selectedBoardroom, onSelectBoardroom, boardrooms = BOARDROOMS, meetingsCount = {} }: RoomSelectorProps) {
   const [open, setOpen] = useState(false)
 
   const getStatus = (room: IBoardroom) => room.availability ? "Available" : "Occupied"
@@ -56,13 +57,13 @@ export default function RoomSelector({ selectedBoardroom, onSelectBoardroom, boa
                   className="mt-2 flex items-center justify-center gap-1 px-1 py-0.5 text-xs bg-cyan-50 text-cyan-400 shadow shadow-cyan-100/60"
                 >
                   <Calendar className="w-3 h-3" />
-                  <span>{selectedBoardroom ? MEETINGS_COUNT[selectedBoardroom.id] ?? 0 : 0}</span>
+                  <span>{selectedBoardroom ? meetingsCount[selectedBoardroom.id] ?? 0 : 0}</span>
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
                 <span>
-                  {selectedBoardroom ? MEETINGS_COUNT[selectedBoardroom.id] ?? 0 : 0} meeting
-                  {(selectedBoardroom && MEETINGS_COUNT[selectedBoardroom.id] !== 1) ? "s" : ""} scheduled
+                  {selectedBoardroom ? meetingsCount[selectedBoardroom.id] ?? 0 : 0} meeting
+                  {(selectedBoardroom && meetingsCount[selectedBoardroom.id] !== 1) ? "s" : ""} scheduled
                 </span>
               </TooltipContent>
             </Tooltip>
@@ -109,11 +110,11 @@ export default function RoomSelector({ selectedBoardroom, onSelectBoardroom, boa
                         className="flex items-center justify-center gap-1 px-1 py-0.5 text-xs bg-cyan-50 text-cyan-400 shadow shadow-cyan-100/60"
                       >
                         <Calendar className="w-3 h-3" />
-                        <span>{MEETINGS_COUNT[room.id] ?? 0}</span>
+                        <span>{meetingsCount[room.id] ?? 0}</span>
                       </Badge>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <span>{MEETINGS_COUNT[room.id] ?? 0} meeting{(MEETINGS_COUNT[room.id] ?? 0) !== 1 ? "s" : ""} scheduled</span>
+                      <span>{meetingsCount[room.id] ?? 0} meeting{(meetingsCount[room.id] ?? 0) !== 1 ? "s" : ""} scheduled</span>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

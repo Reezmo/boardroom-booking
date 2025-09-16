@@ -19,7 +19,7 @@ interface ViewEventProps {
 export function ViewEvent({ event, open, onOpenChange, onEdit, onDelete }: ViewEventProps) {
   if (!event) return null
 
-  const duration = Math.round((event.endTime.getTime() - event.startTime.getTime()) / (1000 * 60))
+  const duration = Math.round((new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / (1000 * 60))
   const hours = Math.floor(duration / 60)
   const minutes = duration % 60
   const durationText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
@@ -39,7 +39,7 @@ export function ViewEvent({ event, open, onOpenChange, onEdit, onDelete }: ViewE
       <DialogContent className="max-w-lg p-0">
         <DialogHeader className="p-6 pb-4">
           <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-            <div className={`w-5 h-5 rounded-full ${event.color.replace("text-", "bg-").split(" ")[0]}`} />
+            <div className={`w-5 h-5 rounded-full ${event.color ? event.color.replace("text-", "bg-").split(" ")[0] : "bg-gray-300"}`} />
             {event.title}
           </DialogTitle>
         </DialogHeader>

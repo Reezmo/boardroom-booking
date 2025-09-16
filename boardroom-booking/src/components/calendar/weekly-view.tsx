@@ -4,6 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import type { IBoardroom } from "@/models/IBoardroom"
 import type { IEvent } from "@/models/IEvent"
+import React from "react"
 import { addDays, format, isSameDay, isToday, startOfWeek } from "date-fns"
 import { Plus } from "lucide-react"
 
@@ -12,6 +13,7 @@ const SLOT_HEIGHT = 30 // pixels per 30-min slot
 
 interface WeeklyViewProps {
   selectedDate: Date
+  setSelectedDate: React.Dispatch<React.SetStateAction<Date>>
   selectedBoardroom: IBoardroom
   events: IEvent[]
   onEventClick: (event: IEvent) => void
@@ -32,12 +34,12 @@ export function WeeklyView({ selectedDate, selectedBoardroom, events, onEventCli
 
   // Filter events for the current week and boardroom
   const weekEvents = events.filter(
-    (event) => event.boardroom.id === selectedBoardroom.id && weekDays.some((day) => isSameDay(event.startTime, day)),
+    (event: IEvent) => event.boardroom.id === selectedBoardroom.id && weekDays.some((day) => isSameDay(event.startTime, day)),
   )
 
   // Get events for a specific day
   const getEventsForDay = (day: Date) => {
-    return weekEvents.filter((event) => isSameDay(event.startTime, day))
+    return weekEvents.filter((event: IEvent) => isSameDay(event.startTime, day))
   }
 
   return (
@@ -155,18 +157,25 @@ export function WeeklyView({ selectedDate, selectedBoardroom, events, onEventCli
                   return (
                     <div
                       key={event.id}
-                      className={`absolute left-1 right-1 rounded-md p-1 text-xs overflow-hidden cursor-pointer transition hover:brightness-95 active:scale-[0.98] ${event.color}`}
+                      className={`absolute left-1 right-1 rounded-lg shadow-md bg-white border border-cyan-100 p-2 text-xs overflow-hidden cursor-pointer transition hover:shadow-lg active:scale-[0.98] ${event.color}`}
                       style={{
                         top: topPosition,
                         height: height,
-                        minHeight: "20px",
+                        minHeight: "32px",
                         zIndex: 2,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
                       }}
                       onClick={() => onEventClick(event)}
                     >
-                      <p className="font-semibold text-xs">{format(event.startTime, "h:mm")}</p>
-                      <p className="font-medium text-xs truncate">{event.title}</p>
-                      {height > 40 && <p className="text-muted-foreground text-xs truncate">{event.description}</p>}
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-cyan-700 text-xs">{format(event.startTime, "h:mm")}</span>
+                        <span className="font-semibold text-gray-800 text-xs truncate">{event.title}</span>
+                      </div>
+                      {event.description && height > 40 && (
+                        <span className="text-xs text-gray-500 truncate">{event.description}</span>
+                      )}
                     </div>
                   )
                 })}

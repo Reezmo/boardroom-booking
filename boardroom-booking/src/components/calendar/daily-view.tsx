@@ -1,4 +1,5 @@
 "use client"
+import React from "react"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -14,7 +15,7 @@ interface DailyViewProps {
   selectedDate: Date
   setSelectedDate: (date: Date) => void
   selectedBoardroom: IBoardroom
-  filteredEvents: IEvent[]
+  events: IEvent[]
   onEventClick: (event: IEvent) => void
   onSlotClick: (slotTime: Date) => void
 }
@@ -23,7 +24,7 @@ export function DailyView({
   selectedDate,
   setSelectedDate,
   selectedBoardroom,
-  filteredEvents,
+  events,
   onEventClick,
   onSlotClick,
 }: DailyViewProps) {
@@ -33,6 +34,9 @@ export function DailyView({
     const minute = (i % 2) * 30
     return { hour, minute }
   })
+
+  // Filter events for the current day and boardroom
+  const dayEvents = events.filter((event: IEvent) => event.boardroom.id === selectedBoardroom.id && isSameDay(event.startTime, selectedDate))
 
   return (
     <>
@@ -136,9 +140,9 @@ export function DailyView({
               ) : null,
             )}
             {/* Events */}
-            {filteredEvents.map((event) => {
-              const startMinutes = event.startTime.getHours() * 60 + event.startTime.getMinutes()
-              const endMinutes = event.endTime.getHours() * 60 + event.endTime.getMinutes()
+            {dayEvents.map((event: IEvent) => {
+              const startMinutes = new Date(event.startTime).getHours() * 60 + new Date(event.startTime).getMinutes()
+              const endMinutes = new Date(event.endTime).getHours() * 60 + new Date(event.endTime).getMinutes()
               const durationMinutes = endMinutes - startMinutes
 
               // Calculate top position and height in 30-min slots
@@ -148,17 +152,25 @@ export function DailyView({
               return (
                 <div
                   key={event.id}
-                  className={`absolute left-2 right-2 rounded-md p-2 text-xs overflow-hidden cursor-pointer transition hover:brightness-95 active:scale-[0.98] ${event.color}`}
+                  className={`absolute left-2 right-2 rounded-lg shadow-md bg-white border border-cyan-100 p-2 text-xs overflow-hidden cursor-pointer transition hover:shadow-lg active:scale-[0.98] ${event.color}`}
                   style={{
                     top: topPosition,
                     height: height,
-                    minHeight: "20px",
+                    minHeight: "32px",
+                    zIndex: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
                   }}
                   onClick={() => onEventClick(event)}
                 >
-                  <p className="font-semibold">{format(event.startTime, "h:mm a")}</p>
-                  <p className="font-medium">{event.title}</p>
-                  <p className="text-muted-foreground">{event.description}</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-cyan-700 text-xs">{format(new Date(event.startTime), "h:mm a")}</span>
+                    <span className="font-semibold text-gray-800 text-xs truncate">{event.title}</span>
+                  </div>
+                  {event.description && (
+                    <span className="text-xs text-gray-500 truncate">{event.description}</span>
+                  )}
                 </div>
               )
             })}
@@ -168,11 +180,11 @@ export function DailyView({
                 // Mark slot as unavailable if it overlaps with any event
                 const slotStart = slot.hour * 60 + slot.minute
                 const slotEnd = slotStart + 30
-                const hasEvent = filteredEvents.some((e) => {
-                  const eventStart = e.startTime.getHours() * 60 + e.startTime.getMinutes()
-                  const eventEnd = e.endTime.getHours() * 60 + e.endTime.getMinutes()
+                const hasEvent = dayEvents.some((e: IEvent) => {
+                  const eventStart = new Date(e.startTime).getHours() * 60 + new Date(e.startTime).getMinutes();
+                  const eventEnd = new Date(e.endTime).getHours() * 60 + new Date(e.endTime).getMinutes();
                   // Slot overlaps with event if slotStart < eventEnd and slotEnd > eventStart
-                  return slotStart < eventEnd && slotEnd > eventStart
+                  return slotStart < eventEnd && slotEnd > eventStart;
                 })
                 if (hasEvent) return null
                 const slotDate = new Date(

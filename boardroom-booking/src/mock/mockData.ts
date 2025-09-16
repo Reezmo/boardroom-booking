@@ -7,18 +7,32 @@ import type { IUser } from "@/models/IUser"
 export const BOARDROOMS: IBoardroom[] = [
   {
     id: "br-1",
-    name: "cyan Room",
+    name: "Cloud",
     availability: true,
     capacity: 10,
-    isConfirmed: true, 
+    isConfirmed: true,
   },
   {
     id: "br-2",
-    name: "Boardroom B",
+    name: "Zenith",
+    availability: true,
+    capacity: 12,
+    isConfirmed: true,
+  },
+  {
+    id: "br-3",
+    name: "Meeting Room",
     availability: false,
-    capacity: 8,
-    isConfirmed: true, 
-  }
+    capacity: 6,
+    isConfirmed: true,
+  },
+  {
+    id: "br-4",
+    name: "Powerhouse",
+    availability: true,
+    capacity: 5,
+    isConfirmed: true,
+  },
 ]
 
 // Organizer
@@ -26,6 +40,7 @@ export const DUMMY_ORGANIZER: IOrganizer = {
   id: "org-1",
   fullName: "Jane Doe",
   mail: "jane.doe@example.com",
+  uid: undefined
 }
 
 // User
@@ -35,141 +50,8 @@ export const DUMMY_USER: IUser = {
   mail: "john.smith@example.com",
 }
 
-// Helper function to get next 30-minute slot
-const getNextSlot = (hoursFromNow: number, minutes: 0 | 30 = 0) => {
-  const now = new Date()
-  const futureDate = new Date()
-  futureDate.setHours(now.getHours() + hoursFromNow, minutes, 0, 0)
-
-  // If the calculated time is in the past, move to next day
-  if (futureDate <= now) {
-    futureDate.setDate(futureDate.getDate() + 1)
-  }
-
-  return futureDate
-}
-
-// Today's date at midnight
-const today = new Date()
-today.setHours(0, 0, 0, 0)
-
 // Events
-export const DUMMY_EVENTS: IEvent[] = [
-  {
-    id: "1",
-    title: "Breakfast",
-    description: "",
-    color: "bg-cyan-100 text-cyan-800",
-    startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 6, 0),
-    endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 7, 0),
-    boardroom: BOARDROOMS[0],
-    organizer: DUMMY_ORGANIZER,
-    attendees: 5,
-    agenda: "Discuss project updates",
-    IsConfirmed: true,
-  },
-  {
-    id: "2",
-    title: "Flight to Paris",
-    description: "John F. Kennedy International Airport",
-    color: "bg-pink-100 text-pink-800",
-    startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 7, 30),
-    endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 0),
-    boardroom: BOARDROOMS[1],
-    organizer: DUMMY_ORGANIZER,
-    IsConfirmed: true,
-  },
-  {
-    id: "3",
-    title: "Team Meeting",
-    description: "Discuss Q1 results",
-    color: "bg-green-100 text-green-800",
-    startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 11, 0),
-    endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0),
-    boardroom: BOARDROOMS[0],
-    organizer: DUMMY_ORGANIZER,
-    IsConfirmed: true,
-  },
-  {
-    id: "4",
-    title: "Lunch with Sarah",
-    description: "Cafe on Main Street",
-    color: "bg-yellow-100 text-yellow-800",
-    startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 13, 30),
-    endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 30),
-    boardroom: BOARDROOMS[0],
-    organizer: DUMMY_ORGANIZER,
-    IsConfirmed: true,
-  },
-  {
-    id: "5",
-    title: "Dentist Appointment",
-    description: "Annual check-up",
-    color: "bg-purple-100 text-purple-800",
-    startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 0),
-    endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 0),
-    boardroom: BOARDROOMS[0],
-    organizer: DUMMY_ORGANIZER,
-    IsConfirmed: true,
-  },
-  // Future events with proper 30-minute alignment
-  {
-    id: "6",
-    title: "Budget Planning",
-    description: "Q2 budget review and planning session",
-    color: "bg-cyan-100 text-cyan-800",
-    startTime: getNextSlot(2, 0), // Next available :00 slot, 2+ hours from now
-    endTime: getNextSlot(3, 0), // 1 hour duration
-    boardroom: BOARDROOMS[0],
-    organizer: DUMMY_ORGANIZER,
-    attendees: 8,
-    agenda: "Review Q1 expenses and plan Q2 budget",
-    IsConfirmed: false, // Pending confirmation
-  },
-  {
-    id: "7",
-    title: "Client Presentation",
-    description: "Present new product features to key client",
-    color: "bg-cyan-100 text-cyan-800",
-    startTime: getNextSlot(4, 30), // Next available :30 slot, 4+ hours from now
-    endTime: getNextSlot(5, 30), // 1 hour duration
-    boardroom: BOARDROOMS[1],
-    organizer: DUMMY_ORGANIZER,
-    attendees: 6,
-    agenda: "Demo new features and gather feedback",
-    IsConfirmed: false, // Pending confirmation
-  },
-  // Tomorrow's events
-  {
-    id: "8",
-    title: "Morning Standup",
-    description: "Daily team sync",
-    color: "bg-teal-100 text-teal-800",
-    startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 9, 0),
-    endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 9, 30),
-    boardroom: BOARDROOMS[0],
-    organizer: DUMMY_ORGANIZER,
-    attendees: 12,
-    agenda: "Sprint progress and blockers",
-    IsConfirmed: true,
-  },
-  {
-    id: "9",
-    title: "Product Review",
-    description: "Weekly product development review",
-    color: "bg-indigo-100 text-indigo-800",
-    startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 14, 30),
-    endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 15, 30),
-    boardroom: BOARDROOMS[1],
-    organizer: DUMMY_ORGANIZER,
-    attendees: 10,
-    agenda: "Review sprint deliverables and next steps",
-    IsConfirmed: true,
-  },
-]
+export const DUMMY_EVENTS: IEvent[] = []
 
 // Meetings count for UI (example)
-export const MEETINGS_COUNT: Record<string, number> = {
-  "br-1": 2,
-  "br-2": 4,
-}
+// This will now need to be fetched from your database.

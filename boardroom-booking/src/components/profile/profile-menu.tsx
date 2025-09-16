@@ -11,37 +11,54 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Building, Calendar, LogOut, Settings, User } from 'lucide-react'
-import { useState } from "react"
-import { DUMMY_USER } from "../../mock/mockData"
-import type { IUser } from "../../models/IUser"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { auth } from "@/app/firebase"
+import { signOut, User as FirebaseUser } from "firebase/auth"
 
 export default function ProfileMenu() {
-  const [user] = useState<IUser>(DUMMY_USER)
+  const router = useRouter()
+  const [user, setUser] = useState<FirebaseUser | null>(null)
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+      setUser(firebaseUser)
+    })
+    return () => unsubscribe()
+  }, [])
 
   const handleProfileClick = () => {
-    console.log("Navigate to profile for user:", user.id)
+    // Implement navigation to profile page if needed
   }
 
   const handleSettingsClick = () => {
-    console.log("Navigate to settings")
+    // Implement navigation to settings page if needed
   }
 
   const handleMyBookingsClick = () => {
-    console.log("Navigate to my bookings for user:", user.id)
+    // Implement navigation to bookings page if needed
   }
 
-  const handleLogoutClick = () => {
-    console.log("Logout user:", user.id)
+  const handleLogoutClick = async () => {
+    await signOut(auth)
+    setUser(null)
+  router.push("/auth")
   }
 
-  // Generate initials from user fullName
-  const getInitials = (fullName: string): string => {
-    return fullName
-      .split(" ")
-      .map((word) => word.charAt(0))
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
+  // Generate initials from user displayName or email
+  const getInitials = (displayName?: string, email?: string): string => {
+    if (displayName) {
+      return displayName
+        .split(" ")
+        .map((word) => word.charAt(0))
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    }
+    if (email) {
+      return email.slice(0, 2).toUpperCase()
+    }
+    return "US"
   }
 
   return (
@@ -56,12 +73,12 @@ export default function ProfileMenu() {
           >
             <Avatar>
               <AvatarImage
-                src={user.profilePicture || "/avatar.gif"}
+                src={user?.photoURL || "/avatar.gif"}
                 alt="Profile Picture"
                 className="h-full w-full rounded-full object-cover"
               />
               <AvatarFallback className="bg-teal-100 text-teal-700 font-semibold">
-                {getInitials(user.fullName)}
+                {getInitials(user?.displayName ?? undefined, user?.email ?? undefined)}
               </AvatarFallback>
             </Avatar>
           </Button>
@@ -70,14 +87,8 @@ export default function ProfileMenu() {
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{user.fullName}</p>
-              <p className="text-xs leading-none text-muted-foreground">{user.mail}</p>
-              {user.tenantId && (
-                <div className="flex items-center text-xs leading-none text-muted-foreground">
-                  <Building className="mr-1 h-3 w-3" />
-                  <span>Tenant ID: {user.tenantId}</span>
-                </div>
-              )}
+              <p className="text-sm font-medium leading-none">{user?.displayName || "User"}</p>
+              <p className="text-xs leading-none text-muted-foreground">{user?.email || "No email"}</p>
             </div>
           </DropdownMenuLabel>
 
