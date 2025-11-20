@@ -108,10 +108,10 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
     // Send confirmation email using EmailJS
     console.log('Sending email with EmailJS...');
     console.log('Email details:', {
-      to_email: userEmail,
-      event_title: newEvent.title,
-      event_date: format(newEvent.startTime, 'MMMM dd, yyyy'),
-      event_time: `${format(newEvent.startTime, 'h:mm a')} - ${format(newEvent.endTime, 'h:mm a')}`,
+          to_email: userEmail,
+          event_title: newEvent.title,
+          event_date: format(newEvent.startTime, 'MMMM dd, yyyy'),
+          event_time: `${format(newEvent.startTime, 'h:mm a')} - ${format(newEvent.endTime, 'h:mm a')}`,
       boardroom: newEvent.boardroom.name,
     });
 
@@ -129,16 +129,16 @@ export function BookingForm({ slotTime, boardroom, onBookingSuccess, existingEve
         boardroom: newEvent.boardroom.name,
       },
       process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
-    ).then(
-      () => {
-        console.log('Email sent successfully!');
-        setSuccess('Meeting booked successfully! Confirmation email sent.');
-      },
-      (error) => {
-        console.error('Failed to send email:', error);
-        setError('Meeting booked, but failed to send confirmation email.');
-      }
-    );
+      ).then(
+        () => {
+          console.log('Email sent successfully!');
+          setSuccess('Meeting booked successfully! Confirmation email sent.');
+        },
+        (error) => {
+          console.error('Failed to send email:', error);
+          setError('Meeting booked, but failed to send confirmation email.');
+        }
+      );
   }
 
   async function handleDelete() {

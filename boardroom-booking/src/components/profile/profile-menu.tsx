@@ -10,15 +10,23 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+} from "@/components/ui/sheet"
 import { Building, Calendar, LogOut, Settings, User } from 'lucide-react'
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { auth } from "@/app/firebase"
 import { signOut, User as FirebaseUser } from "firebase/auth"
+import SettingsComponent from "../sheet/settings"
 
 export default function ProfileMenu() {
   const router = useRouter()
   const [user, setUser] = useState<FirebaseUser | null>(null)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
@@ -32,7 +40,7 @@ export default function ProfileMenu() {
   }
 
   const handleSettingsClick = () => {
-    // Implement navigation to settings page if needed
+    setIsSettingsOpen(true)
   }
 
   const handleMyBookingsClick = () => {
@@ -117,6 +125,9 @@ export default function ProfileMenu() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <SettingsComponent open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
     </div>
   )
 }
+          

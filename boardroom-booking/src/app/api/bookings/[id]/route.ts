@@ -8,6 +8,11 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return NextResponse.json({ message: 'Booking ID is required' }, { status: 400 });
   }
 
+  // Validate that the ID is a number to prevent SQL errors
+  if (isNaN(Number(id))) {
+    return NextResponse.json({ message: 'Invalid Booking ID format' }, { status: 400 });
+  }
+
   try {
     const [result] = await pool.execute('DELETE FROM meetings WHERE id = ?', [id]);
     
@@ -17,7 +22,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       return NextResponse.json({ message: 'Booking not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ message: 'Booking deleted successfully' }, { status: 200 });
+    return NextResponse.json({ message: 'Booking deleted successfully' });
   } catch (error) {
     console.error('Failed to delete booking:', error);
     return NextResponse.json({ message: 'Failed to delete booking' }, { status: 500 });

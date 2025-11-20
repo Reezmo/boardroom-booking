@@ -96,7 +96,7 @@ export default function EventCalendar() {
         endTime: new Date(event.endTime),
         boardroom: BOARDROOMS.find(b => b.id === event.boardroomId) || selectedBoardroom,
         IsConfirmed: true, // All fetched events are considered confirmed
-        organizer: { uid: event.userId }, // Map userId from DB to organizer.uid
+                  userId: currentUser?.uid,
       }));
       setEvents(formattedEvents);
     } catch (error) {
@@ -301,7 +301,7 @@ export default function EventCalendar() {
         },
         body: JSON.stringify({
           ...newEvent,
-          organizer: { uid: currentUser?.uid },
+          userId: currentUser?.uid,
         }),
       });
 
