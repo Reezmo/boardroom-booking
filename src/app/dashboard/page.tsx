@@ -22,7 +22,8 @@ import type { IEvent } from "@/models/IEvent"
 import { addMonths, endOfMonth, format, getDay, isSameDay, isToday, startOfMonth, subMonths } from "date-fns"
 import { Calendar, CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
 import { useMemo, useState, useEffect } from "react"
-import { auth } from "@/app/firebase"
+import { auth, db } from "@/app/firebase"
+import { collection, getDocs, addDoc, doc, deleteDoc } from "firebase/firestore"
 import { toast } from "sonner"
 
 
@@ -85,20 +86,19 @@ export default function EventCalendar() {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('/api/bookings');
-      if (!response.ok) {
-        throw new Error('Failed to fetch events');
-      }
-      const data = await response.json();
-      const formattedEvents = data.map((event: Record<string, any>) => ({
-        ...event,
-        id: event.id.toString(), // Ensure id is a string
-        startTime: new Date(event.startTime),
-        endTime: new Date(event.endTime),
-        boardroom: BOARDROOMS.find(b => b.id === event.boardroomId) || selectedBoardroom,
-        IsConfirmed: true, // All fetched events are considered confirmed
-        userId: currentUser?.uid,
-      }));
+      const querySnapshot = await getDocs(collection(db, 'meetings'));
+      const formattedEvents = querySnapshot.docs.map((docSnap) => {
+        const eventData = docSnap.data();
+        return {
+          ...eventData,
+          id: docSnap.id,
+          startTime: eventData.startTime.toDate(),
+          endTime: eventData.endTime.toDate(),
+          boardroom: BOARDROOMS.find((b) => b.id === eventData.boardroom?.id) || selectedBoardroom,
+          IsConfirmed: true,
+          userId: currentUser?.uid,
+        } as unknown as IEvent;
+      });
       setEvents(formattedEvents);
     } catch (error) {
       console.error(error);
@@ -304,25 +304,15 @@ export default function EventCalendar() {
     toast.info("Navigated to today", {
       description: `Viewing ${format(today, "MMMM dd, yyyy")}`,
     })
-    addNotification("info", "Calendar Navigation", `Navigated to today's date: ${format(today, "MMMM dd, yyyy")}`)
+    addNotification("info", "Calendar Navigation", `Mapsd to today's date: ${format(today, "MMMM dd, yyyy")}`)
   }
 
   const handleBookingSuccess = async (newEvent: IEvent) => {
     try {
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...newEvent,
-          userId: currentUser?.uid,
-        }),
+      await addDoc(collection(db, 'meetings'), {
+        ...newEvent,
+        userId: currentUser?.uid,
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to create booking');
-      }
 
       // Immediately add the new event to the local state to update the UI instantly
       setEvents(prevEvents => [
@@ -348,8 +338,6 @@ export default function EventCalendar() {
         "Meeting Booked",
         `${newEvent.title} has been scheduled for ${format(newEvent.startTime, "MMM dd, h:mm a")} in ${newEvent.boardroom.name}.`,
       )
-      // Optionally, you can still refetch to ensure sync with DB, but the UI is already updated.
-      // await fetchEvents();
     } catch (error) {
       console.error(error);
       toast.error('Failed to book meeting.');
@@ -385,14 +373,7 @@ export default function EventCalendar() {
 
   const handleEventDelete = async (eventId: string) => {
     try {
-      const response = await fetch(`/api/bookings/${eventId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete event');
-      }
+      await deleteDoc(doc(db, 'meetings', eventId));
 
       // Instantly remove the event from the local state
       setEvents((prev) => prev.filter((e) => e.id !== eventId));
