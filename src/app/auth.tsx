@@ -11,7 +11,7 @@ export default function AuthWrapperComponent() {
   <div className="hidden md:flex flex-1 flex-col items-center justify-center bg-gradient-to-br from-cyan-100 via-white to-teal-100 bg-white/70 backdrop-blur-lg p-12 shadow-inner">
         {/* BoardSync Logo */}
         <img
-          src="/Logo2.png"
+          src="/logo2.png"
           alt="RoomReserve Logo"
           className="w-120 h-80 mb-2 drop-shadow-lg"
           style={{ background: "none" }}
