@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RoomReserve 📅
 
-## Getting Started
+RoomReserve is a modern, blazing-fast boardroom booking application built for enterprise environments. It provides seamless meeting scheduling, real-time room availability tracking, and automated email confirmations.
 
-First, run the development server:
+## 🚀 Tech Stack
 
-```bash
+* **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
+* **Authentication:** Firebase Auth
+* **Database:** Firebase Firestore
+* **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+* **UI Components:** [Shadcn UI](https://ui.shadcn.com/)
+* **Email Infrastructure:** [Resend API](https://resend.com/)
+
+## ✨ Key Features
+
+* **Secure Authentication:** Email/password login and registration powered by Firebase.
+* **Smart Booking Flow:** Prevents double-booking and enforces boardroom capacity limits.
+* **Instant Database Sync:** Direct Firestore integration for rapid read/writes.
+* **Automated Email Confirmations:** Sends customized booking confirmations and cancellation notices.
+* **Strict Type Safety:** Built with TypeScript to ensure runtime reliability.
+
+## 🛠️ Getting Started
+
+### Prerequisites
+Make sure you have Node.js and npm installed on your local machine. You will also need a Firebase project and a Resend API key.
+
+### 1. Clone the repository
+\`\`\`bash
+git clone https://github.com/yourusername/roomreserve.git
+cd roomreserve
+\`\`\`
+
+### 2. Install dependencies
+\`\`\`bash
+npm install
+\`\`\`
+
+### 3. Set up Environment Variables
+Create a \`.env.local\` file in the root of the project and add the following keys. You can find your Firebase keys in your Firebase Project Settings, and the Resend key in your Resend dashboard.
+
+\`\`\`env
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
+
+RESEND_API_KEY=your_resend_api_key
+\`\`\`
+
+### 4. Run the Development Server
+\`\`\`bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
+\`\`\`
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🌿 Git Workflow
+This project follows a strict branching strategy:
+* \`prod\`: The live production environment. Never push directly to this branch.
+* \`dev\`: The staging environment for testing integrated features.
+* \`feature/*\`: Isolated sandbox branches for building new features or fixing bugs.
